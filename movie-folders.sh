@@ -12,11 +12,13 @@ src=/volume1/Media/movies
 # separate by newline
 export IFS=$'\n'
 
-# get list of video files, exclusing regex and strings often that appear in episodes
+# get list of video files with common extensions
 files=$(find $src -maxdepth 1 -type f | egrep "\.(mkv|mp4|avi|mpeg4|mpg|divx)$" )
+# minus 1 off as it counts the trailing newline
+count=`expr ${#files[@]} - 1`
 
 echo ========== MOVE MOVIES INTO FOLDERS ==========
-echo [ INFO ] Found ${#ArrayName[@]} movie files.
+echo [ INFO ] Found $count movie files.
 
 # process each movie file
 for file in ${files[*]}; do
@@ -27,12 +29,12 @@ for file in ${files[*]}; do
   newf="${bn%.*}"
   newsrc=$src/$newf
   # make new folder
-  echo [ DIR ] $newsrc 
+  echo [ DIR  ] $newsrc 
   mkdir "$newsrc"
   # move the files
   echo [ MOVE ] $bn.*    
   find $src -wholename "${file%.*}.*" -exec mv '{}' $newsrc \;
-  echo [ END ] Finished.
+  echo [ END  ] Finished.
 done
 
 #
