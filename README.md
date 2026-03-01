@@ -30,6 +30,31 @@ Edit configuration variables at the top of the script:
 
 ---
 
+### `media-extensions.py`
+
+Restores file extensions for photos and videos by analyzing magic bytes.
+
+**Features:**
+
+- Detects file types from binary headers/magic bytes
+- Supports images: JPEG, PNG, GIF, BMP, TIFF, HEIC, HEIF, AVIF
+- Supports videos: MP4, M4V, MOV, 3GP, MKV, FLV, MPEG, OGG, AVI, WebM
+- Handles equivalent extensions (.jpg/.jpeg, .tiff/.tif, etc.)
+- Skips system files (.DS_Store, Thumbs.db, etc.)
+- Dry-run mode available for preview
+
+**Usage:**
+
+```bash
+# Preview changes
+python3 media-extensions.py /path/to/files --dry-run
+
+# Restore extensions
+python3 media-extensions.py /path/to/files
+```
+
+---
+
 ### `movie-folders.sh`
 
 Organizes movie files into individual folders for Plex compatibility.
@@ -81,31 +106,6 @@ Edit configuration at the top of the script:
 
 ```bash
 python3 plexmeta.py
-```
-
----
-
-### `restore_extensions.py`
-
-Restores file extensions for photos and videos by analyzing magic bytes.
-
-**Features:**
-
-- Detects file types from binary headers/magic bytes
-- Supports images: JPEG, PNG, GIF, BMP, TIFF, HEIC, HEIF, AVIF
-- Supports videos: MP4, M4V, MOV, 3GP, MKV, FLV, MPEG, OGG, AVI, WebM
-- Handles equivalent extensions (.jpg/.jpeg, .tiff/.tif, etc.)
-- Skips system files (.DS_Store, Thumbs.db, etc.)
-- Dry-run mode available for preview
-
-**Usage:**
-
-```bash
-# Preview changes
-python3 restore_extensions.py /path/to/files --dry-run
-
-# Restore extensions
-python3 restore_extensions.py /path/to/files
 ```
 
 ---
