@@ -9,6 +9,8 @@
 #                are also backed up; containers are stopped before and
 #                restarted after each run.
 #
+# Requirements  : rsync, docker, docker-compose
+#
 # Usage        : Edit configuration variables at the top of this file.
 #                Run this script daily or weekly via scheduled cron job.
 #

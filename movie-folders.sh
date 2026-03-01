@@ -4,6 +4,7 @@
 #   MOVIE MOVER 
 # 
 #   A script to move movies into their own folders
+#   Requirements: bash, find, mv, du
 #
 
 # Location of your movies

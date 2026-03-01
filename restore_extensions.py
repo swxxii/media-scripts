@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
 File Extension Restorer - Restores correct extensions for photo/video files.
+
+Requirements: Python 3.6+ (standard library only, no external packages)
 """
 import os, sys, re, shutil, argparse
 from pathlib import Path

@@ -11,7 +11,7 @@
 #               - Download completed files to disk.
 #               - Clean up exports from the server.
 #
-# Dependency:   `pip install requests`
+# Requirements:  Python 3.8+, pip install requests
 #
 # -------------------------------------------------------------------------
 import time
