@@ -1,0 +1,8 @@
+response_log.txt
+plex-qbt-pauser.json
+._*
+plex-qbt-pauser.log
+plex-qbt-pauser.pid
+pyenv/*
+.DS_Store
+permissions.sh
