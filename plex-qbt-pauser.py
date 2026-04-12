@@ -15,7 +15,7 @@ from pathlib import Path
 import qbittorrentapi
 import requests
 
-CONFIG_FILENAME = "plex-qbt-pauser.json"
+SECRETS_FILENAME = "secrets.json"
 LOG_MAX_BYTES = 100_000
 LOG_LEVEL = logging.INFO
 
@@ -83,30 +83,22 @@ def acquire_lock():
 
 
 def load_config():
-    path = (ROOT / CONFIG_FILENAME).resolve()
+    secrets_path = (ROOT / SECRETS_FILENAME).resolve()
     try:
-        d = json.loads(path.read_text(encoding="utf-8"))
+        secrets = json.loads(secrets_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
-        print("Invalid config file", file=sys.stderr)
+        print("Invalid secrets file", file=sys.stderr)
         sys.exit(1)
-    d = {k: v for k, v in d.items() if not (isinstance(k, str) and k.startswith("_"))}
-    p, q = d["plex"], d["qbittorrent"]
-    sk = q.get("skip_category", "")
-    if sk is None:
-        sk = ""
-    elif not isinstance(sk, str):
-        sk = str(sk)
-    base = str(p.get("url", "")).strip().rstrip("/")
-    log.info("Loaded config from %s", path)
+    log.info("Loaded secrets from %s", secrets_path)
     return {
-        "plex_sessions_url": "%s/status/sessions" % base,
-        "plex_token": str(p.get("token", "")).strip(),
-        "qb_host": str(q.get("host", "")).strip(),
-        "qb_port": int(q["port"]),
-        "qb_user": str(q.get("username", "")).strip(),
-        "qb_password": str(q.get("password", "")),
-        "skip_category": sk,
-        "interval_seconds": int(d.get("interval_seconds", 30)),
+        "plex_sessions_url": "http://192.168.1.3:32400/status/sessions",
+        "plex_token": secrets["plex_token"],
+        "qb_host": "192.168.1.3",
+        "qb_port": 8081,
+        "qb_user": secrets["qbittorrent_username"],
+        "qb_password": secrets["qbittorrent_password"],
+        "skip_category": "force",
+        "interval_seconds": 30,
     }
 
 

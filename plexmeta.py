@@ -14,6 +14,8 @@
 # Dependency:   `pip install requests`
 #
 # -------------------------------------------------------------------------
+import json
+import sys
 import time
 import requests
 from pathlib import Path
@@ -21,16 +23,12 @@ from pathlib import Path
 # -------------------------------------------------------------------------
 # CONFIGURATION
 # -------------------------------------------------------------------------
-# base URL of the Tautulli server (including port).
 TAUTULLI    = "http://192.168.1.3:8181"
-# Tautulli API key (get from Tautulli settings > web interface).
-API_KEY     = "CHANGE TO YOUR KEY"
-# folder where export files will be saved
+API_KEY     = json.loads((Path(__file__).resolve().parent / "secrets.json")
+                .read_text())["tautulli_api_key"]
 OUTPUT_DIR  = Path("/mnt/sync/Google/Backups/plexmeta")
 
-# number of seconds to wait before checking export is complete
 POLL_SECS   = 5
-# number of seconds to wait before bailing on an export
 TIMEOUT     = 300
 
 # -------------------------------------------------------------------------
@@ -49,11 +47,32 @@ def api(cmd, **params):
     return body["data"]
 
 
+# -------------------------------------------------------------------------
+# Check that Tautulli can talk to Plex (token is valid)
+# -------------------------------------------------------------------------
+def check_plex_connection():
+    try:
+        logs = api("get_logs", search="Unauthorized", end=20)
+        recent_auth_errors = [
+            log for log in logs
+            if log.get("loglevel") == "ERROR" and "401" in log.get("msg", "")
+        ]
+        if recent_auth_errors:
+            print("ERROR: Tautulli cannot connect to Plex — authentication failed (401).")
+            print("       The Plex token in Tautulli has likely expired.")
+            print("       Fix: Open Tautulli Settings > Plex Media Server and re-authenticate.")
+            print(f"       Tautulli URL: {TAUTULLI}")
+            sys.exit(1)
+    except Exception:
+        pass  # non-critical check, let it proceed
+
+
 # -----------------------------------------------------------------------------
 # Get list of Plex libraries (section_id, section_name)
 # -----------------------------------------------------------------------------
 def get_libraries():
-    return [(lib["section_id"], lib["section_name"]) for lib in api("get_libraries")]
+    table = api("get_libraries_table")
+    return [(lib["section_id"], lib["section_name"]) for lib in table.get("data", [])]
 
 
 # -----------------------------------------------------------------------------
@@ -147,6 +166,7 @@ def main():
     print("Starting Plex metadata export...")
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     wait_for_tautulli()
+    check_plex_connection()
     deleted_initial = delete_all_exports()
     print(f"Cleaned up {deleted_initial} exports before starting.")
     libraries = get_libraries()

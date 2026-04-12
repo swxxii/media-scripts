@@ -2,11 +2,19 @@
 
 Utility scripts for media servers, backup automation, and file management.
 
+## Configuration
+
+Update scripts with your configuration directly within the `.py` or `.sh` files.
+
+Copy `secrets.example.json` to `secrets.json` and enter your sensitive credentials (`plexmeta.py`and `plex-qbt-pauser.py`).
+
+---
+
 ## Scripts
 
 ### `backuparr.sh`
 
-Automated backup utility for Arr services and Docker containers.
+Automated backup for Arr services and Docker containers.
 
 **Features:**
 
@@ -17,16 +25,24 @@ Automated backup utility for Arr services and Docker containers.
 - Verbose logging to `backuparr.log`
 
 **Setup:**
-Edit configuration variables at the top of the script:
 
-- `DESTDIR` - backup destination (recommend to cloud sync)
-- `ARR_BASE` - Base directory for Arr applications
-- `ARR_APPS` - List of apps to backup, will be appended to base
-- `CONTAINERS` - Docker containers to backup
-- `DOCKER_BASE_DIR` - Folder that docker data folders are inside
-- `SCRIPTS_DIR` - Scripts directory to backup
+1. Open `backuparr.sh` and configure the inline variables at the top of the file:
+  - `DESTDIR` - Where the backups are saved
+  - `ARR_BASE` - The directory containing your Arr apps
+  - `ARR_APPS` - The list of Arr apps you have installed
+  - `BAZARR_DATA_DIR` - Location of Bazarr's automated backups 
+  - `QBITTORRENT_CONF` - Location of `qBittorrent.conf`
+  - `CONTAINERS` - The list of Docker containers you want backed up 
+  - `DOCKER_BASE_DIR` - Where your Docker container data/compose files live 
+  - `SCRIPTS_DIR` - Location of the scripts folder to back up
 
-**Usage:** Run daily or weekly via cron
+**Usage:**
+
+Run manually, or add to your crontab to run regularly (e.g., weekly):
+
+```bash
+0 3 * * 0 /path/to/backuparr.sh
+```
 
 ---
 
@@ -46,10 +62,10 @@ Restores file extensions for photos and videos by analyzing magic bytes.
 **Usage:**
 
 ```bash
-# Preview changes
+# Preview changes without modifying files (Dry Run)
 python3 media-extensions.py /path/to/files --dry-run
 
-# Restore extensions
+# Execute and rename
 python3 media-extensions.py /path/to/files
 ```
 
@@ -67,25 +83,23 @@ Organizes movie files into individual folders for Plex compatibility.
 - Progress logging
 
 **Setup:**
-Edit the `src` variable to point to your movies directory:
 
-```bash
-src=/volume1/Media/movies
-```
+1. Open `movie-folders.sh`.
+2. Edit the `src` variable to point to your target directory.
 
-**Usage:** Run once to organize existing folder
+**Usage:**
+
+CAUTION! This script uses destructive cleanup (`rm -rf`) for empty folders.
 
 ```bash
 ./movie-folders.sh
 ```
 
-**⚠️ Warning:** Uses `rm -rf` for folder cleanup—use with caution!
-
 ---
 
 ### `plexmeta.py`
 
-Exports Plex library metadata via Tautulli API.
+Exports Plex library to CSV and JSON metadata via Tautulli API so you have a backup of what was in Plex if you lose everything (e.g. NAS failure).
 
 **Features:**
 
@@ -96,11 +110,12 @@ Exports Plex library metadata via Tautulli API.
 - Cleans up server-side exports
 
 **Setup:**
-Edit configuration at the top of the script:
 
-- `TAUTULLI` - Tautulli server URL and port
-- `API_KEY` - Tautulli API key (from Tautulli settings)
-- `OUTPUT_DIR` - Local directory for exports
+1. Install dependencies: `pip install requests`
+2. Edit `plexmeta.py` and configure the inline variables:
+  - `TAUTULLI` - Tautulli server URL and port
+  - `OUTPUT_DIR` - Folder to save exported CSVs/JSONs
+3. Edit `secrets.json` and configure `tautulli_api_key`.
 
 **Usage:**
 
@@ -112,42 +127,37 @@ python3 plexmeta.py
 
 ### `plex-qbt-pauser.py`
 
-Polls Plex for remote clients that are playing. When any are detected, pauses qBittorrent torrents except those in a configurable category. If any torrents remain active switches to alternative speed limit; otherwise uses normal limits. When there are no longer any remote users playing, resumes torrents and restores normal speed limits.
+Designed to pause torrents when remote users are playing in Plex then resume when they finish playing. Skip pausing torrents in certain categories. If any torrents remain active switches on alternative speed limit.
 
-The first run spawns a background worker and the parent exits (like `nohup`). 
+The first run spawns a background worker and then exits (like `nohup`). 
 
-**Dependencies:**
+**Setup:**
+
+1. Install dependencies: `pip install requests qbittorrent-api`
+2. Edit `plex-qbt-pauser.py` and configure the variables inside the `load_config()` function:
+  - `plex_sessions_url` - URL of your Plex server (e.g. `http://192.168.1.3:32400/status/sessions`)
+  - `qb_host` - qBittorrent IP address
+  - `qb_port` - qBittorrent WebUI port
+  - `skip_category` - Category name of torrents to never pause (use `""` to pause all)
+  - `interval_seconds` - Time between checks in seconds
+3. Edit `secrets.json` and configure:
+  - `plex_token` *(To find this: Plex Web → library item → Get Info → View XML → copy* `X-Plex-Token` *value from URL)*
+  - `qbittorrent_username`
+  - `qbittorrent_password`
+
+**Usage:**
+
+Run it directly, or set it up as a cron job hourly to ensure script is always running in case of crash or reboot.
 
 ```bash
-pip install requests qbittorrent-api
-```
-
-**Configuration:** 
-
-Copy `[plex-qbt-pauser.example.json](plex-qbt-pauser.example.json)` to `plex-qbt-pauser.json` and update to your setup.
-
-- `plex.url` — base URL, no trailing slash.
-- `plex.token` — Go to Plex Web → library item → Get Info → View XML → copy value after `X-Plex-Token=` in the URL.
-- `qbittorrent.skip_category` — Don't pause torrents in this category, use `""` to pause all.
-- `interval_seconds` — seconds between checks.
-- Other config variables are self-explanatory
-
-**Installation:**  
-
-```
+# Start as a daemon via Cron
 sudo ln -s /path/to/plex-qbt-pauser.py /etc/cron.hourly/plex-qbt-pauser
-```
 
-**Monitoring logs:**  
-
-```
-tail -f /path/to/plex-qbt-pauser.log  
-```
-
-**Restarting:**
-
-```
+# Restart the daemon
 pkill -f plex-qbt-pauser.py && /path/to/plex-qbt-pauser.py
+
+# Monitor live logs
+tail -f /path/to/plex-qbt-pauser.log  
 ```
 
 ---
@@ -165,12 +175,11 @@ Tests BitTorrent tracker URLs for validity and performance.
 - Saves valid trackers to `valid_trackers.txt`
 - Progress bar and logging
 
-**Configuration:**
-Edit variables at the top of the script:
+**Setup:**
 
-- `TRACKER_LISTS` - URLs of tracker lists to fetch
-- `OUTPUT_FILE` - Output filename for valid trackers
-- `LOG_FILE` - Log file for detailed results
+1. Open `test-trackers.py` and optionally configure:
+  - `TRACKER_LISTS` - Source URLs to pull potential trackers from.
+  - `OUTPUT_FILE` / `LOG_FILE` - Filepaths for output.
 
 **Usage:**
 
@@ -178,18 +187,8 @@ Edit variables at the top of the script:
 python3 test-trackers.py
 ```
 
-Output: `valid_trackers.txt` - List of working trackers ready for use
-
 ---
 
 ### [Chromecast.md](Chromecast.md)
 
 When casting from the Plex iOS app to a Chromecast, some movies fail to play while others work fine. This document describes the cause, how to diagnose it from server logs, and how to fix it.
-
----
-
-## Notes
-
-- Configure each script before running (inline variables or, for `plex-qbt-pauser.py`, `plex-qbt-pauser.json`).
-- `plex-qbt-pauser.json` is gitignored; keep secrets out of commits.
-
