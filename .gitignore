@@ -1,8 +1,7 @@
 .DS_Store
 ._*
 permissions.sh
-plexmeta.json
-plex-qbt-pauser.json
+secrets.json
 plex-qbt-pauser.log
 plex-qbt-pauser.pid
 pyenv/*
