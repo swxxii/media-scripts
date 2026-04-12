@@ -117,6 +117,40 @@ For full diagnosis details, see [Chromecast.md](Chromecast.md).
 
 ---
 
+### `plex-buffer.sh`
+
+Tautulli notification trigger script for logging buffering events to a log file so you can review who buffered, what title, and how many times.
+
+**Config:**
+
+- `LOG` - Log file path (default: `/scripts/plex-buffer.log`) - should be writable by docker container
+- `KEEP_LINES` - Maximum number of log lines to keep (default: `500`)
+
+The script appends each event, then trims the file to the last `KEEP_LINES` entries.
+It also uses a lock directory so overlapping Buffer Warning events do not corrupt the log.
+
+**Tautulli Setup:**
+
+1. Go to **Settings -> Notification Agents -> Add -> Script**.
+2. Set **Script Folder** to `/scripts` and select `plex-buffer.sh`.
+3. Under **Triggers**, enable **Buffer Warning**.
+4. Under **Arguments** for **Buffer Warning**, enter:
+
+```text
+{username} "{title}" {buffer_count}
+```
+
+5. Under **Conditions**, set **Stream Location** is **wan** to only log remote users.
+6. Save and restart Tautulli.
+
+**Example log line:**
+
+```text
+2026-04-12 23:05:14 AEST | alice | Inception | Count: 3
+```
+
+---
+
 ### `plexmeta.py`
 
 Exports Plex library to CSV and JSON metadata via Tautulli API so you have a backup of what was in Plex if you lose everything (e.g. NAS failure).
