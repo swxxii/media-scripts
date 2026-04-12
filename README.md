@@ -97,6 +97,26 @@ CAUTION! This script uses destructive cleanup (`rm -rf`) for empty folders.
 
 ---
 
+### `plex-chromecast-fix.sh`
+
+Post-update Plex helper for a Chromecast playback issue where `Generic.xml` is incorrectly used.
+
+**What it does:**
+
+- Renames `/usr/lib/plexmediaserver/Resources/Profiles/Generic.xml` to `Generic.xml.old`
+- Restarts `plexmediaserver`
+- If already renamed, prints an "Already disabled" message
+
+**Usage:**
+
+```bash
+sudo ./plex-chromecast-fix.sh
+```
+
+For full diagnosis details, see [Chromecast.md](Chromecast.md).
+
+---
+
 ### `plexmeta.py`
 
 Exports Plex library to CSV and JSON metadata via Tautulli API so you have a backup of what was in Plex if you lose everything (e.g. NAS failure).

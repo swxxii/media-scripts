@@ -16,7 +16,6 @@ When casting from the Plex iOS app to a Chromecast, some movies fail to play whi
 - [Diagnosis](#diagnosis)
 - [Resolution](#resolution)
 - [Verification](#verification)
-- [Known Issues](#known-issues)
 - [Additional Troubleshooting](#additional-troubleshooting)
 
 ---
@@ -58,23 +57,16 @@ Unable to find client profile Generic, falling back to traditional profile detec
 
 ## Resolution
 
-### Step 1 — Locate the Generic profile
+### Step 1 — Run the helper script
 
 ```bash
-find /usr/lib/plexmediaserver /var/lib/plexmediaserver -name "Generic.xml" 2>/dev/null
+sudo /path/to/plex-chromecast-fix.sh
 ```
 
-### Step 2 — Rename it (do not delete, in case you need to revert)
+The script does the following:
 
-```bash
-sudo mv "/path/to/Generic.xml" "/path/to/Generic.xml.old"
-```
-
-### Step 3 — Restart Plex Media Server
-
-```bash
-sudo systemctl restart plexmediaserver
-```
+- Renames `/usr/lib/plexmediaserver/Resources/Profiles/Generic.xml` to `Generic.xml.old`
+- Restarts `plexmediaserver`
 
 ### Step 4 — Client Devices
 
@@ -104,7 +96,7 @@ This confirms `Generic.xml` has been removed and Plex is now using proper device
 
 ## Additional Troubleshooting
 
-- **Plex updates** can restore the stock `Generic.xml` file. If casting breaks again after an update, repeat Steps 1 and 2 above.
+- **Plex updates** can restore the stock `Generic.xml` file. If casting breaks again after an update, run `plex-chromecast-fix.sh` again.
 
 
 - **DNS:** Chromecast casting is known to break when using Cloudflare DNS (`1.1.1.1`). Switch your router or device DNS to Google DNS (`8.8.8.8` / `8.8.4.4`) or your ISP's default DNS and retry.
