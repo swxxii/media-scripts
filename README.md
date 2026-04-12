@@ -6,7 +6,7 @@ Utility scripts for media servers, backup automation, and file management.
 
 Update scripts with your configuration directly within the `.py` or `.sh` files.
 
-Copy `secrets.example.json` to `secrets.json` and enter your sensitive credentials (`plexmeta.py`and `plex-qbt-pauser.py`).
+Copy `secrets.example.json` to `secrets.json` and enter your sensitive credentials (`plexmeta.py` and `plex-qbt-pauser.py`).
 
 ---
 
@@ -62,10 +62,10 @@ Restores file extensions for photos and videos by analyzing magic bytes.
 **Usage:**
 
 ```bash
-# Preview changes without modifying files (Dry Run)
+# Preview changes without modifying files
 python3 media-extensions.py /path/to/files --dry-run
 
-# Execute and rename
+# Execute and rename files (default mode)
 python3 media-extensions.py /path/to/files
 ```
 
@@ -94,26 +94,6 @@ CAUTION! This script uses destructive cleanup (`rm -rf`) for empty folders.
 ```bash
 ./movie-folders.sh
 ```
-
----
-
-### `plex-chromecast-fix.sh`
-
-Post-update Plex helper for a Chromecast playback issue where `Generic.xml` is incorrectly used.
-
-**What it does:**
-
-- Renames `/usr/lib/plexmediaserver/Resources/Profiles/Generic.xml` to `Generic.xml.old`
-- Restarts `plexmediaserver`
-- If already renamed, prints an "Already disabled" message
-
-**Usage:**
-
-```bash
-sudo ./plex-chromecast-fix.sh
-```
-
-For full diagnosis details, see [Chromecast.md](Chromecast.md).
 
 ---
 
@@ -151,6 +131,66 @@ It also uses a lock directory so overlapping Buffer Warning events do not corrup
 
 ---
 
+### `plex-chromecast-fix.sh`
+
+Post-update Plex helper for a Chromecast playback issue where `Generic.xml` is incorrectly used.
+
+**What it does:**
+
+- Renames `/usr/lib/plexmediaserver/Resources/Profiles/Generic.xml` to `Generic.xml.old`
+- Restarts `plexmediaserver`
+- If already renamed, prints an "Already disabled" message
+
+**Usage:**
+
+```bash
+sudo ./plex-chromecast-fix.sh
+```
+
+For full diagnosis details on this Chromecast casting issue, see [plex-chromecast-fix.md](plex-chromecast-fix.md).
+
+---
+
+### `plex-qbt-pauser.py`
+
+Designed to pause torrents when remote users are playing in Plex then resume when they finish playing. Skip pausing torrents in certain categories. If any torrents remain active switches on alternative speed limit.
+
+The first run spawns a background worker and then exits (like `nohup`). 
+
+**Dependencies:**
+
+1. Run in script folder: `pip install requests qbittorrent-api`
+
+**Setup:**
+
+1. Edit `plex-qbt-pauser.py` and configure the inline variables at the top of the file:
+  - `PLEX_URL` - Plex sessions endpoint URL
+  - `QB_HOST` - qBittorrent IP address
+  - `QB_PORT` - qBittorrent WebUI port
+  - `SKIP_CAT` - Don't pause torrents in this category (use `""` to pause all)
+  - `INTERVAL` - Time between checks in seconds
+2. Edit `secrets.json` and configure:
+  - `plex_token` *(To find this: Plex Web → library item → Get Info → View XML → copy* `X-Plex-Token` *value from URL)*
+  - `qbittorrent_username`
+  - `qbittorrent_password`
+
+**Usage:**
+
+Run it directly, or set it up as a cron job hourly to ensure script is always running in case of crash or reboot.
+
+```bash
+# Install as Cron job
+sudo ln -s /path/to/plex-qbt-pauser.py /etc/cron.hourly/plex-qbt-pauser
+
+# Restart the script
+/path/to/plex-qbt-pauser.py --restart
+
+# Monitor live logs
+tail -f /path/to/plex-qbt-pauser.log  
+```
+
+---
+
 ### `plexmeta.py`
 
 Exports Plex library to CSV and JSON metadata via Tautulli API so you have a backup of what was in Plex if you lose everything (e.g. NAS failure).
@@ -179,46 +219,6 @@ python3 plexmeta.py
 
 ---
 
-### `plex-qbt-pauser.py`
-
-Designed to pause torrents when remote users are playing in Plex then resume when they finish playing. Skip pausing torrents in certain categories. If any torrents remain active switches on alternative speed limit.
-
-The first run spawns a background worker and then exits (like `nohup`). 
-
-**Dependencies:**
-
-1. Run in script folder: `pip install requests qbittorrent-api`
-
-**Setup:**
-
-1. Edit `plex-qbt-pauser.py` and configure the inline variables at the top of the file:
-  - `PLEX_SESSIONS_URL` - Change Plex server IP
-  - `QB_HOST` - qBittorrent IP address
-  - `QB_PORT` - qBittorrent WebUI port
-  - `SKIP_CATEGORY` - Don't pause torrents in this caregory (use `""` to pause all)
-  - `INTERVAL_SECONDS` - Time between checks in seconds
-2. Edit `secrets.json` and configure:
-  - `plex_token` *(To find this: Plex Web → library item → Get Info → View XML → copy* `X-Plex-Token` *value from URL)*
-  - `qbittorrent_username`
-  - `qbittorrent_password`
-
-**Usage:**
-
-Run it directly, or set it up as a cron job hourly to ensure script is always running in case of crash or reboot.
-
-```bash
-# Install as Cron job
-sudo ln -s /path/to/plex-qbt-pauser.py /etc/cron.hourly/plex-qbt-pauser
-
-# Restart the script
-pkill -f plex-qbt-pauser.py && /path/to/plex-qbt-pauser.py
-
-# Monitor live logs
-tail -f /path/to/plex-qbt-pauser.log  
-```
-
----
-
 ### `test-trackers.py`
 
 Tests BitTorrent tracker URLs for validity and performance.
@@ -234,7 +234,8 @@ Tests BitTorrent tracker URLs for validity and performance.
 
 **Setup:**
 
-1. Open `test-trackers.py` and optionally configure:
+1. Install dependencies: `pip install requests rich`
+2. Open `test-trackers.py` and optionally configure:
   - `TRACKER_LISTS` - Source URLs to pull potential trackers from.
   - `OUTPUT_FILE` / `LOG_FILE` - Filepaths for output.
 
@@ -244,8 +245,9 @@ Tests BitTorrent tracker URLs for validity and performance.
 python3 test-trackers.py
 ```
 
+
 ---
 
-### [Chromecast.md](Chromecast.md)
+## License
 
-When casting from the Plex iOS app to a Chromecast, some movies fail to play while others work fine. This document describes the cause, how to diagnose it from server logs, and how to fix it.
+MIT License. See [LICENSE](LICENSE) for details.

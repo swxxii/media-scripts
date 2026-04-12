@@ -123,13 +123,13 @@ def process(directory, dry_run=True, interactive=False, move_unknown=None, sanit
 def main():
     p = argparse.ArgumentParser(description='Restore correct file extensions for photos/videos.')
     p.add_argument('directory', help='Directory to scan')
-    p.add_argument('--no-dry-run', action='store_true', help='Actually rename files')
+    p.add_argument('--dry-run', action='store_true', help='Preview changes without modifying files')
     p.add_argument('-i', '--interactive', action='store_true', help='Prompt for each file')
     p.add_argument('--move-unknown', metavar='DIR', help='Move unknown files to DIR')
     p.add_argument('--sanitize-names', action='store_true', help='Clean problematic chars from filenames')
     a = p.parse_args()
     
-    dry_run = not a.no_dry_run and not a.interactive
+    dry_run = a.dry_run or a.interactive
     process(a.directory, dry_run=dry_run, interactive=a.interactive, 
             move_unknown=a.move_unknown, sanitize_names=a.sanitize_names)
 
