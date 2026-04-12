@@ -133,12 +133,12 @@ It also uses a lock directory so overlapping Buffer Warning events do not corrup
 
 ### `plex-chromecast-fix.sh`
 
-Post-update Plex helper for a Chromecast playback issue where `Generic.xml` is incorrectly used.
+Run this a Plex update to fix the issue where casting from iOS to a Chromecast fails for some titles but not all. Plex update restores `Generic.xml` profile which causes this issue. More info in [plex-chromecast-fix.md](plex-chromecast-fix.md).
 
 **What it does:**
 
 - Renames `/usr/lib/plexmediaserver/Resources/Profiles/Generic.xml` to `Generic.xml.old`
-- Restarts `plexmediaserver`
+- Restarts Plex media server
 - If already renamed, prints an "Already disabled" message
 
 **Usage:**
@@ -146,8 +146,6 @@ Post-update Plex helper for a Chromecast playback issue where `Generic.xml` is i
 ```bash
 sudo ./plex-chromecast-fix.sh
 ```
-
-For full diagnosis details on this Chromecast casting issue, see [plex-chromecast-fix.md](plex-chromecast-fix.md).
 
 ---
 
