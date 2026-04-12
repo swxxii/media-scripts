@@ -131,16 +131,19 @@ Designed to pause torrents when remote users are playing in Plex then resume whe
 
 The first run spawns a background worker and then exits (like `nohup`). 
 
+**Dependencies:**
+
+1. Run in script folder: `pip install requests qbittorrent-api`
+
 **Setup:**
 
-1. Install dependencies: `pip install requests qbittorrent-api`
-2. Edit `plex-qbt-pauser.py` and configure the variables inside the `load_config()` function:
-  - `plex_sessions_url` - URL of your Plex server (e.g. `http://192.168.1.3:32400/status/sessions`)
-  - `qb_host` - qBittorrent IP address
-  - `qb_port` - qBittorrent WebUI port
-  - `skip_category` - Category name of torrents to never pause (use `""` to pause all)
-  - `interval_seconds` - Time between checks in seconds
-3. Edit `secrets.json` and configure:
+1. Edit `plex-qbt-pauser.py` and configure the inline variables at the top of the file:
+  - `PLEX_SESSIONS_URL` - Change Plex server IP
+  - `QB_HOST` - qBittorrent IP address
+  - `QB_PORT` - qBittorrent WebUI port
+  - `SKIP_CATEGORY` - Don't pause torrents in this caregory (use `""` to pause all)
+  - `INTERVAL_SECONDS` - Time between checks in seconds
+2. Edit `secrets.json` and configure:
   - `plex_token` *(To find this: Plex Web → library item → Get Info → View XML → copy* `X-Plex-Token` *value from URL)*
   - `qbittorrent_username`
   - `qbittorrent_password`
@@ -150,10 +153,10 @@ The first run spawns a background worker and then exits (like `nohup`).
 Run it directly, or set it up as a cron job hourly to ensure script is always running in case of crash or reboot.
 
 ```bash
-# Start as a daemon via Cron
+# Install as Cron job
 sudo ln -s /path/to/plex-qbt-pauser.py /etc/cron.hourly/plex-qbt-pauser
 
-# Restart the daemon
+# Restart the script
 pkill -f plex-qbt-pauser.py && /path/to/plex-qbt-pauser.py
 
 # Monitor live logs

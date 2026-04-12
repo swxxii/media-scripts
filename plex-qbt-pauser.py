@@ -11,21 +11,29 @@ import time
 import xml.etree.ElementTree as ET
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-
 import qbittorrentapi
 import requests
 
+# -------------------------------------------------------------------------
+# CONFIGURATION
+# -------------------------------------------------------------------------
+PLEX_SESSIONS_URL = "http://192.168.1.3:32400/status/sessions"
+QB_HOST = "192.168.1.3"
+QB_PORT = 8081
+SKIP_CATEGORY = "force"
+INTERVAL_SECONDS = 30
 SECRETS_FILENAME = "secrets.json"
 LOG_MAX_BYTES = 100_000
 LOG_LEVEL = logging.INFO
 
+# -------------------------------------------------------------------------
+# INITIAL SETUP
+# -------------------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent
 SCRIPT = Path(__file__).resolve()
 LOG_FILE = SCRIPT.with_suffix(".log")
 PID_FILE = SCRIPT.with_suffix(".pid")
-
 DETACHED_ENV = "PLEX_QBT_PAUSER_DETACHED"
-
 log = logging.getLogger("plex-qbt-pauser")
 log.setLevel(LOG_LEVEL)
 _h = RotatingFileHandler(LOG_FILE, maxBytes=LOG_MAX_BYTES, backupCount=0)
@@ -37,6 +45,7 @@ log.addHandler(_h)
 _lock_fd = None
 
 
+# Relaunches the script as a detached background daemon process.
 def detach_in_background():
     if os.environ.get(DETACHED_ENV):
         return False
@@ -64,6 +73,7 @@ def detach_in_background():
     return True
 
 
+# Ensures only a single instance of the script runs using a PID file lock.
 def acquire_lock():
     global _lock_fd
     _lock_fd = open(PID_FILE, "w")
@@ -82,6 +92,7 @@ def acquire_lock():
     atexit.register(_unlock)
 
 
+# Loads sensitive credentials from secrets.json and combines them with global config.
 def load_config():
     secrets_path = (ROOT / SECRETS_FILENAME).resolve()
     try:
@@ -91,17 +102,18 @@ def load_config():
         sys.exit(1)
     log.info("Loaded secrets from %s", secrets_path)
     return {
-        "plex_sessions_url": "http://192.168.1.3:32400/status/sessions",
+        "plex_sessions_url": PLEX_SESSIONS_URL,
         "plex_token": secrets["plex_token"],
-        "qb_host": "192.168.1.3",
-        "qb_port": 8081,
+        "qb_host": QB_HOST,
+        "qb_port": QB_PORT,
         "qb_user": secrets["qbittorrent_username"],
         "qb_password": secrets["qbittorrent_password"],
-        "skip_category": "force",
-        "interval_seconds": 30,
+        "skip_category": SKIP_CATEGORY,
+        "interval_seconds": INTERVAL_SECONDS,
     }
 
 
+# Main loop: monitors Plex for active streams and pauses qBittorrent accordingly.
 def main():
     c = load_config()
     paused = None
@@ -116,6 +128,7 @@ def main():
     qb.auth_log_in()
     log.info("Connected to qBittorrent – monitoring Plex sessions...")
 
+    # Toggles the alternative speed limits in qBittorrent.
     def speed(alt, msg=None):
         try:
             if str(qb.transfer_speed_limits_mode()) == ("1" if alt else "0"):
