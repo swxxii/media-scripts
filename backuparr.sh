@@ -57,6 +57,13 @@ div() {
     printf '%s\n' '------------------------------------------------------------'
 }
 
+section() {
+    echo
+    div
+    log "$*"
+    div
+}
+
 # helper: perform rsync with optional extra args
 rsync_job() {
     local src="$1" dest="$2"
@@ -74,8 +81,7 @@ rsync_job() {
 # -----------------------------------------------------------------------------
 # FOLDER BACKUPS - rsync ARR backups, Bazarr, qBittorrent, and scripts
 # -----------------------------------------------------------------------------
-div
-log "Performing folder backups"
+section "Performing folder backups"
 for app in "${ARR_APPS[@]}"; do
     mkdir -p "$DESTDIR/$app"
 done
@@ -104,14 +110,10 @@ manage_containers() {
 }
 
 if [ ${#CONTAINERS[@]} -gt 0 ]; then
-    echo
-    div
-    log "Stopping Docker containers"
+    section "Stopping Docker containers"
     manage_containers stop
 
-    echo
-    div
-    log "Backing up Docker containers"
+    section "Backing up Docker containers"
     # ensure container backup directories exist
     for c in "${CONTAINERS[@]}"; do
         mkdir -p "$DESTDIR/$c"
@@ -120,9 +122,7 @@ if [ ${#CONTAINERS[@]} -gt 0 ]; then
         rsync_job "$DOCKER_BASE_DIR/$c/" "$DESTDIR/$c/"
     done
 
-    echo
-    div
-    log "Starting Docker containers"
+    section "Starting Docker containers"
     manage_containers start
 fi
 
@@ -130,7 +130,5 @@ fi
 # FINALIZE and print backup size
 # -----------------------------------------------------------------------------
 
-echo
-
 size=$(du -sh "$DESTDIR" | cut -f1)
-log "Backup complete: $size"
+section "Backup complete: $size"
