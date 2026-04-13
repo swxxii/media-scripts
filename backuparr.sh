@@ -70,6 +70,7 @@ rsync_job() {
 # -----------------------------------------------------------------------------
 # FOLDER BACKUPS - rsync ARR backups, Bazarr, qBittorrent, and scripts
 # -----------------------------------------------------------------------------
+log "------------------------------------------------------------"
 log "[*] Performing folder backups"
 for app in "${ARR_APPS[@]}"; do
     mkdir -p "$DESTDIR/$app"
@@ -93,18 +94,20 @@ rsync_job "$SCRIPTS_DIR/" "$DESTDIR/scripts/" --exclude=pyenv/ --exclude=.git/ -
 manage_containers() {
     local cmd="$1"
     for c in "${CONTAINERS[@]}"; do
-        log "[>] $cmd $c..."
+        log "$cmd $c..."
         docker compose -f "$DOCKER_BASE_DIR/$c/docker-compose.yml" "$cmd"
     done
 }
 
 if [ ${#CONTAINERS[@]} -gt 0 ]; then
     echo
-    log "[*] Stopping Docker containers"
+    log "------------------------------------------------------------"
+    log "Stopping Docker containers"
     manage_containers stop
 
     echo
-    log "[*] Backing up Docker containers"
+    log "------------------------------------------------------------"
+    log "Backing up Docker containers"
     # ensure container backup directories exist
     for c in "${CONTAINERS[@]}"; do
         mkdir -p "$DESTDIR/$c"
@@ -114,7 +117,8 @@ if [ ${#CONTAINERS[@]} -gt 0 ]; then
     done
 
     echo
-    log "[*] Starting Docker containers"
+    log "------------------------------------------------------------"
+    log "Starting Docker containers"
     manage_containers start
 fi
 
@@ -125,4 +129,4 @@ fi
 echo
 
 size=$(du -sh "$DESTDIR" | cut -f1)
-log "[+] Backup complete: $size"
+log "Backup complete: $size"
