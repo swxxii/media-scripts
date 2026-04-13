@@ -53,6 +53,10 @@ log() {
     printf '[%s] %s\n' "$timestamp" "$*"
 }
 
+div() {
+    printf '%s\n' '------------------------------------------------------------'
+}
+
 # helper: perform rsync with optional extra args
 rsync_job() {
     local src="$1" dest="$2"
@@ -62,7 +66,7 @@ rsync_job() {
     if [ "$VERBOSE" = true ]; then
         flags+=("-v")
     fi
-    log "[>] Backing up $(basename "$dest")..."
+    log "Backing up $(basename "$dest")..."
     mkdir -p "$dest"
     rsync "${flags[@]}" "${extra[@]}" "$src" "$dest"
 }
@@ -70,8 +74,8 @@ rsync_job() {
 # -----------------------------------------------------------------------------
 # FOLDER BACKUPS - rsync ARR backups, Bazarr, qBittorrent, and scripts
 # -----------------------------------------------------------------------------
-log "------------------------------------------------------------"
-log "[*] Performing folder backups"
+div
+log "Performing folder backups"
 for app in "${ARR_APPS[@]}"; do
     mkdir -p "$DESTDIR/$app"
 done
@@ -101,12 +105,12 @@ manage_containers() {
 
 if [ ${#CONTAINERS[@]} -gt 0 ]; then
     echo
-    log "------------------------------------------------------------"
+    div
     log "Stopping Docker containers"
     manage_containers stop
 
     echo
-    log "------------------------------------------------------------"
+    div
     log "Backing up Docker containers"
     # ensure container backup directories exist
     for c in "${CONTAINERS[@]}"; do
@@ -117,7 +121,7 @@ if [ ${#CONTAINERS[@]} -gt 0 ]; then
     done
 
     echo
-    log "------------------------------------------------------------"
+    div
     log "Starting Docker containers"
     manage_containers start
 fi
