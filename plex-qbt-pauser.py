@@ -321,6 +321,17 @@ def main():
 
 
 if __name__ == "__main__":
+    if "--quit" in sys.argv:
+        sys.argv.remove("--quit")
+        if PID_FILE.exists():
+            try:
+                old_pid = int(PID_FILE.read_text().strip())
+                os.kill(old_pid, signal.SIGKILL)
+                print(f"Killed existing worker (pid {old_pid})...", file=sys.stderr)
+            except (OSError, ValueError):
+                pass
+        sys.exit(0)
+
     if "--restart" in sys.argv:
         sys.argv.remove("--restart")
         if PID_FILE.exists():
