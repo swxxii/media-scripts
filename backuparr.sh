@@ -39,31 +39,38 @@ DOCKER_BASE_DIR="/home/simon/docker"
 SCRIPTS_DIR="/home/simon/scripts"
 
 # log everything to backuparr.log next to this script (overwrite)
+set -euo pipefail
+IFS=$'\n\t'
 LOGFILE="$(dirname "${BASH_SOURCE[0]}")/backuparr.log"
 : >"$LOGFILE"
 # log output to logfile only
 exec >>"$LOGFILE" 2>&1
 # -----------------------------------------------------------------------------
 
+log() {
+    local timestamp
+    timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
+    printf '[%s] %s\n' "$timestamp" "$*"
+}
+
 # helper: perform rsync with optional extra args
 rsync_job() {
-    local src="$1" dest="$2" extra="$3" flags="-a --delete"
+    local src="$1" dest="$2"
+    shift 2
+    local extra=("$@")
+    local flags=("-a" "--delete")
     if [ "$VERBOSE" = true ]; then
-        # only add verbose flag (avoid progress which can produce control chars)
-        flags="$flags -v"
+        flags+=("-v")
     fi
-    echo "[>] Backing up $(basename "$dest")..."
+    log "[>] Backing up $(basename "$dest")..."
     mkdir -p "$dest"
-    rsync $flags $extra "$src" "$dest"
+    rsync "${flags[@]}" "${extra[@]}" "$src" "$dest"
 }
 
 # -----------------------------------------------------------------------------
 # FOLDER BACKUPS - rsync ARR backups, Bazarr, qBittorrent, and scripts
 # -----------------------------------------------------------------------------
-echo "[*] Performing folder backups"
-# ensure main backup directory exists
-mkdir -p "$DESTDIR"
-# ensure all backup subdirectories exist
+log "[*] Performing folder backups"
 for app in "${ARR_APPS[@]}"; do
     mkdir -p "$DESTDIR/$app"
 done
@@ -78,7 +85,7 @@ done
 # sync other folders
 rsync_job "$BAZARR_DATA_DIR/" "$DESTDIR/bazarr/"
 rsync_job "$QBITTORRENT_CONF" "$DESTDIR/qbittorrent/"
-rsync_job "$SCRIPTS_DIR/" "$DESTDIR/scripts/" "--exclude=pyenv/ --no-links"
+rsync_job "$SCRIPTS_DIR/" "$DESTDIR/scripts/" --exclude=pyenv/ --no-links
 
 # -----------------------------------------------------------------------------
 # DOCKER BACKUPS - stop containers, copy data files, start containers
@@ -86,18 +93,18 @@ rsync_job "$SCRIPTS_DIR/" "$DESTDIR/scripts/" "--exclude=pyenv/ --no-links"
 manage_containers() {
     local cmd="$1"
     for c in "${CONTAINERS[@]}"; do
-        echo "[>] $cmd $c..."
-        docker compose -f "$DOCKER_BASE_DIR/$c/docker-compose.yml" $cmd
+        log "[>] $cmd $c..."
+        docker compose -f "$DOCKER_BASE_DIR/$c/docker-compose.yml" "$cmd"
     done
 }
 
 if [ ${#CONTAINERS[@]} -gt 0 ]; then
     echo
-    echo "[*] Stopping Docker containers"
+    log "[*] Stopping Docker containers"
     manage_containers stop
 
     echo
-    echo "[*] Backing up Docker containers"
+    log "[*] Backing up Docker containers"
     # ensure container backup directories exist
     for c in "${CONTAINERS[@]}"; do
         mkdir -p "$DESTDIR/$c"
@@ -107,7 +114,7 @@ if [ ${#CONTAINERS[@]} -gt 0 ]; then
     done
 
     echo
-    echo "[*] Starting Docker containers"
+    log "[*] Starting Docker containers"
     manage_containers start
 fi
 
@@ -118,4 +125,4 @@ fi
 echo
 
 size=$(du -sh "$DESTDIR" | cut -f1)
-echo "[+] Backup complete: $size"
+log "[+] Backup complete: $size"
