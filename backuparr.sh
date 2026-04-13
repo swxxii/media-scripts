@@ -85,7 +85,7 @@ done
 # sync other folders
 rsync_job "$BAZARR_DATA_DIR/" "$DESTDIR/bazarr/"
 rsync_job "$QBITTORRENT_CONF" "$DESTDIR/qbittorrent/"
-rsync_job "$SCRIPTS_DIR/" "$DESTDIR/scripts/" --exclude=pyenv/ --no-links
+rsync_job "$SCRIPTS_DIR/" "$DESTDIR/scripts/" --exclude=pyenv/ --exclude=.git/ --no-links
 
 # -----------------------------------------------------------------------------
 # DOCKER BACKUPS - stop containers, copy data files, start containers
