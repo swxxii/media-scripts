@@ -7,3 +7,4 @@ plex-qbt-pauser.pid
 pyenv/*
 response_log.txt
 plex-buffer.log*
+pyenv/
