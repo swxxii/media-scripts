@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import sys, os, json, subprocess, logging, time, argparse, glob
 
-LOG_FILE = os.path.expanduser("~/transcode.log")
+LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "transcode.log")
 PROGRESS_DIR = "/tmp/transcode_progress"
-logging.basicConfig(filename=LOG_FILE, filemode="w", level=logging.INFO,
+logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
 def mediainfo(path):
