@@ -217,6 +217,60 @@ python3 plexmeta.py
 
 ---
 
+### `plex-tvos-hevc.sh`
+
+Installs a custom Plex tvOS device profile that enables HEVC 10-bit (Main 10) direct play on Apple TV, which may fix stuttering caused by Plex's profile not exposing.
+
+The profile is installed to the user profiles directory and survives Plex updates.
+
+**Usage:**
+
+```bash
+sudo ./plex-tvos-hevc.sh
+```
+
+After running, force-quit Plex on Apple TV to reload the profile.
+
+---
+
+### `transcode.py`
+
+Scans a folder (recursively) for video files that will stutter when played via Plex on Apple TV, and transcodes them to a compatible format.
+
+> **Note:** If your issue is HEVC 10-bit video (common in 4K content), try `plex-tvos-hevc.sh` first — it may fix playback without needing to transcode anything.
+
+**Detects and fixes:**
+
+- Video: H.264 10-bit (Hi10P), HEVC 10-bit, AV1, VP9 — re-encoded to H.264 8-bit
+- Audio: TrueHD, DTS, DTS-HD MA, Dolby Atmos — re-encoded to AC3 640k
+
+Transcoded files are saved alongside originals with a `[transcoded]` suffix. Logs to `transcode.log` in the script directory.
+
+**Dependencies:**
+
+```bash
+# Install mediainfo and ffmpeg
+sudo apt install mediainfo ffmpeg
+```
+
+**Usage:**
+
+```bash
+# Scan a folder
+python3 transcode.py /path/to/media
+
+# Scan a single file
+python3 transcode.py /path/to/file.mkv
+
+# Test mode — transcode first 10 minutes only
+python3 transcode.py /path/to/media --test
+
+# Monitor active transcodes
+python3 transcode.py --watch
+```
+
+---
+
 ### `test-trackers.py`
 
 Tests BitTorrent tracker URLs for validity and performance.
