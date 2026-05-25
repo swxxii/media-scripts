@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os, json, subprocess, logging, argparse
+from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, BarColumn, MofNCompleteColumn, TextColumn, TimeElapsedColumn
 
 LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "strip-subtitles.log")
@@ -74,6 +75,7 @@ def scan(target, test=False):
         BarColumn(),
         MofNCompleteColumn(),
         TimeElapsedColumn(),
+        console=Console(stderr=True, force_terminal=True),
     ) as progress:
         task = progress.add_task("scanning", total=len(files))
         for path in files:
