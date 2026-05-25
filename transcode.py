@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
-import os, json, subprocess, logging, time, argparse
+import os, sys, json, subprocess, time, argparse
+from tqdm import tqdm
 
-LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "transcode.log")
 TRANSCODED_SUFFIX = "[transcoded]"
 EXTS = {".mkv", ".mp4", ".m4v", ".avi", ".mov"}
-
-logging.basicConfig(level=logging.INFO,
-                    format="%(asctime)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
 def mediainfo(path):
     result = subprocess.run(["mediainfo", "--Output=JSON", path], capture_output=True, text=True)
     return json.loads(result.stdout)["media"]["track"]
+
+def get_duration(tracks):
+    for t in tracks:
+        if t["@type"] == "General":
+            try:
+                return float(t["Duration"])
+            except (KeyError, ValueError):
+                return None
+    return None
 
 def needs_transcode(tracks):
     video_reasons = []
@@ -35,23 +41,36 @@ def needs_transcode(tracks):
                 audio_reasons.append("Dolby Atmos")
     return video_reasons, audio_reasons
 
-def transcode(src, video_reasons, audio_reasons, test=False):
+def transcode(src, duration, video_reasons, audio_reasons, test=False):
     base, ext = os.path.splitext(src)
     suffix = "[transcode-test]" if test else TRANSCODED_SUFFIX
     dst = f"{base} {suffix}{ext}"
     if os.path.exists(dst):
+        tqdm.write(f"SKIP {os.path.basename(src)}")
         return
-    reasons = video_reasons + audio_reasons
-    logging.info(f"START {src} [{', '.join(reasons)}]" + (" [test]" if test else ""))
-    cmd = ["nice", "-n", "19", "ffmpeg", "-loglevel", "error", "-i", src]
+    reasons = ", ".join(video_reasons + audio_reasons)
+    tqdm.write(f"TRANSCODE {os.path.basename(src)} [{reasons}]")
+    total = min(duration, 600) if (test and duration) else duration
+    cmd = ["nice", "-n", "19", "ffmpeg", "-loglevel", "error", "-progress", "pipe:1", "-i", src]
     if test:
         cmd += ["-t", "600"]
     video_codec = ["libx264", "-crf", "18", "-preset", "slow", "-pix_fmt", "yuv420p"] if video_reasons else ["copy"]
     audio_codec = ["ac3", "-b:a", "640k"] if audio_reasons else ["copy"]
     cmd += ["-map", "0:v", "-map", "0:a", "-map", "0:s?",
             "-c:v"] + video_codec + ["-c:a"] + audio_codec + ["-c:s", "copy", dst]
-    subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    logging.info(f"DONE {src}")
+    with tqdm(total=int(total) if total else None, unit="s", unit_scale=True,
+              ncols=80, desc=os.path.basename(src), file=sys.stdout) as bar:
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+        current = 0
+        for line in proc.stdout:
+            if line.startswith("out_time_ms="):
+                val = line.strip().split("=")[1]
+                if val.lstrip("-").isdigit():
+                    secs = int(val) / 1_000_000
+                    if secs > current:
+                        bar.update(secs - current)
+                        current = secs
+        proc.wait()
 
 def process(path, test=False):
     if TRANSCODED_SUFFIX in os.path.basename(path) or "[transcode-test]" in os.path.basename(path):
@@ -60,12 +79,9 @@ def process(path, test=False):
         tracks = mediainfo(path)
         video_reasons, audio_reasons = needs_transcode(tracks)
         if video_reasons or audio_reasons:
-            logging.info(f"TRANSCODE {path} [{', '.join(video_reasons + audio_reasons)}]")
-            transcode(path, video_reasons, audio_reasons, test=test)
-        else:
-            logging.info(f"OK {path}")
+            transcode(path, get_duration(tracks), video_reasons, audio_reasons, test=test)
     except Exception as e:
-        logging.error(f"ERROR {path}: {e}")
+        tqdm.write(f"ERROR {path}: {e}")
 
 def scan(target, test=False):
     if os.path.isfile(target):
@@ -96,6 +112,4 @@ if args.watch:
 elif not os.path.exists(args.path):
     print(f"Error: path not found: {args.path}")
 else:
-    logging.info(f"SCAN {args.path}")
     scan(args.path, test=args.test)
-    logging.info("SCAN done")
