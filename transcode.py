@@ -56,9 +56,10 @@ def transcode(src, duration, video_reasons, audio_reasons, test=False):
     if test:
         cmd += ["-t", "300"]
     preset = "ultrafast" if test else "slow"
-    video_codec = ["libx264", "-crf", "18", "-preset", preset, "-pix_fmt", "yuv420p"] if video_reasons else ["copy"]
+    video_codec = ["libx264", "-crf", "18", "-preset", preset] if video_reasons else ["copy"]
+    video_filter = ["-vf", "format=yuv420p"] if video_reasons else []
     audio_codec = ["ac3", "-b:a", "640k"] if audio_reasons else ["copy"]
-    cmd += ["-map", "0:v", "-map", "0:a", "-map", "0:s?",
+    cmd += ["-map", "0:v", "-map", "0:a", "-map", "0:s?"] + video_filter + [
             "-c:v"] + video_codec + ["-c:a"] + audio_codec + ["-c:s", "copy", dst]
     with tqdm(total=int(total) if total else None, unit="s", unit_scale=True,
               dynamic_ncols=True, desc=os.path.basename(src), file=sys.stdout) as bar:
