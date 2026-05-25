@@ -75,7 +75,7 @@ def scan(target, test=False):
         BarColumn(),
         MofNCompleteColumn(),
         TimeElapsedColumn(),
-        console=Console(stderr=True, force_terminal=True),
+        console=Console(force_terminal=True, force_interactive=True),
     ) as progress:
         task = progress.add_task("scanning", total=len(files))
         for path in files:
