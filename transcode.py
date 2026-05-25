@@ -28,18 +28,16 @@ def transcode(src, reasons):
     dst = f"{base} [transcoded]{ext}"
     if os.path.exists(dst):
         return None
-    proc = subprocess.Popen([
+    subprocess.Popen([
         "nice", "-n", "19",
         "ffmpeg", "-loglevel", "error", "-i", src,
         "-map", "0:v", "-map", "0:a", "-map", "0:s?",
         "-c:v", "copy", "-c:a", "ac3", "-b:a", "640k", "-c:s", "copy",
         dst
-    ])
-    return (proc, dst)
+    ], start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 folder = sys.argv[1] if len(sys.argv) > 1 else "."
 exts = {".mkv", ".mp4", ".m4v", ".avi", ".mov"}
-jobs = []
 
 for root, dirs, files in os.walk(folder):
     dirs.sort()
@@ -50,11 +48,6 @@ for root, dirs, files in os.walk(folder):
         try:
             reasons = needs_transcode(mediainfo(path))
             if reasons:
-                job = transcode(path, reasons)
-                if job:
-                    jobs.append(job)
+                transcode(path, reasons)
         except Exception:
             pass
-
-for proc, dst in jobs:
-    proc.wait()
