@@ -52,12 +52,14 @@ def transcode(src, duration, video_reasons, audio_reasons, test=False):
     label = "TEST" if test else "TRANSCODE"
     tqdm.write(f"{label} {os.path.basename(src)} [{reasons}]")
     total = min(duration, 300) if (test and duration) else duration
-    cmd = ["nice", "-n", "19", "ffmpeg", "-loglevel", "error", "-progress", "pipe:1", "-y", "-i", src]
+    cmd = ["nice", "-n", "19", "ffmpeg", "-loglevel", "error", "-progress", "pipe:1", "-y"]
+    if video_reasons:
+        cmd += ["-vaapi_device", "/dev/dri/renderD128"]
+    cmd += ["-i", src]
     if test:
         cmd += ["-t", "300"]
-    preset = "ultrafast" if test else "slow"
-    video_codec = ["libx264", "-crf", "18", "-preset", preset] if video_reasons else ["copy"]
-    video_filter = ["-vf", "format=yuv420p"] if video_reasons else []
+    video_codec = ["hevc_vaapi", "-qp", "24"] if video_reasons else ["copy"]
+    video_filter = ["-vf", "format=nv12,hwupload"] if video_reasons else []
     audio_codec = ["ac3", "-b:a", "640k"] if audio_reasons else ["copy"]
     cmd += ["-map", "0:v", "-map", "0:a", "-map", "0:s?"] + video_filter + [
             "-c:v"] + video_codec + ["-c:a"] + audio_codec + ["-c:s", "copy", dst]
