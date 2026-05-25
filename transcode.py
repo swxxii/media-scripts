@@ -45,14 +45,14 @@ def transcode(src, duration, video_reasons, audio_reasons, test=False):
     base, ext = os.path.splitext(src)
     suffix = "[transcode-test]" if test else TRANSCODED_SUFFIX
     dst = f"{base} {suffix}{ext}"
-    if os.path.exists(dst):
+    if not test and os.path.exists(dst):
         tqdm.write(f"SKIP {os.path.basename(src)}")
         return
     reasons = ", ".join(video_reasons + audio_reasons)
     label = "TEST" if test else "TRANSCODE"
     tqdm.write(f"{label} {os.path.basename(src)} [{reasons}]")
     total = min(duration, 600) if (test and duration) else duration
-    cmd = ["nice", "-n", "19", "ffmpeg", "-loglevel", "error", "-progress", "pipe:1", "-i", src]
+    cmd = ["nice", "-n", "19", "ffmpeg", "-loglevel", "error", "-progress", "pipe:1", "-y", "-i", src]
     if test:
         cmd += ["-t", "600"]
     preset = "ultrafast" if test else "slow"
