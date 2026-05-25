@@ -19,8 +19,8 @@ def needs_transcode(tracks):
         if t["@type"] == "Video":
             fmt = t.get("Format", "")
             depth = t.get("BitDepth", "8")
-            if fmt == "AVC" and depth == "10":
-                video_reasons.append("H.264 10-bit")
+            if depth == "10":
+                video_reasons.append(f"{fmt} 10-bit")
             elif fmt in ("AV1", "VP9"):
                 video_reasons.append(fmt)
         if t["@type"] == "Audio":
