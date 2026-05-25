@@ -72,7 +72,10 @@ def scan(folder, seen):
                 tracks = mediainfo(path)
                 reasons = needs_transcode(tracks)
                 if reasons:
+                    logging.info(f"TRANSCODE {path} [{', '.join(reasons)}]")
                     transcode(path, reasons, tracks)
+                else:
+                    logging.info(f"OK {path}")
             except Exception as e:
                 logging.error(f"ERROR {path}: {e}")
 
