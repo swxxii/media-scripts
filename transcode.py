@@ -55,7 +55,8 @@ def transcode(src, duration, video_reasons, audio_reasons, test=False):
     cmd = ["nice", "-n", "19", "ffmpeg", "-loglevel", "error", "-progress", "pipe:1", "-i", src]
     if test:
         cmd += ["-t", "600"]
-    video_codec = ["libx264", "-crf", "18", "-preset", "slow", "-pix_fmt", "yuv420p"] if video_reasons else ["copy"]
+    preset = "ultrafast" if test else "slow"
+    video_codec = ["libx264", "-crf", "18", "-preset", preset, "-pix_fmt", "yuv420p"] if video_reasons else ["copy"]
     audio_codec = ["ac3", "-b:a", "640k"] if audio_reasons else ["copy"]
     cmd += ["-map", "0:v", "-map", "0:a", "-map", "0:s?",
             "-c:v"] + video_codec + ["-c:a"] + audio_codec + ["-c:s", "copy", dst]
