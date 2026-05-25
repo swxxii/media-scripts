@@ -25,19 +25,15 @@ def get_duration(tracks):
                 return None
     return None
 
-def strip(src, duration, test=False):
+def strip(src, duration):
     tmp = src + ".tmp"
     logging.info(f"START {src}")
-    total = min(duration, 600) if (test and duration) else duration
     cmd = ["nice", "-n", "19",
            "ffmpeg", "-loglevel", "error", "-progress", "pipe:1", "-i", src,
            "-map", "0:v", "-map", "0:a",
-           "-c", "copy"]
-    if test:
-        cmd += ["-t", "600"]
-    cmd.append(tmp)
+           "-c", "copy", tmp]
     try:
-        with tqdm(total=int(total) if total else None, unit="s", unit_scale=True,
+        with tqdm(total=int(duration) if duration else None, unit="s", unit_scale=True,
                   ncols=80, desc=os.path.basename(src), file=sys.stdout) as bar:
             proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
             current = 0
@@ -53,43 +49,53 @@ def strip(src, duration, test=False):
         if proc.returncode != 0:
             raise subprocess.CalledProcessError(proc.returncode, cmd)
         os.replace(tmp, src)
-        logging.info(f"DONE {src}")
+        remaining = count_subs(mediainfo(src))
+        if remaining:
+            print(f"VERIFY FAIL {os.path.basename(src)} ({remaining} sub tracks remain)")
+            logging.warning(f"VERIFY FAILED {src} ({remaining} sub tracks remain)")
+        else:
+            logging.info(f"DONE {src}")
     except Exception:
         if os.path.exists(tmp):
             os.remove(tmp)
         raise
 
-def process(path, test=False):
+def process(path):
     try:
         tracks = mediainfo(path)
         n = count_subs(tracks)
         if not n:
+            print(f"NO SUBS  {os.path.basename(path)}")
             logging.info(f"NO SUBS {path}")
         else:
+            print(f"STRIP    {os.path.basename(path)} ({n} sub tracks)")
             logging.info(f"STRIP {path} ({n} sub tracks)")
-            strip(path, get_duration(tracks), test=test)
+            strip(path, get_duration(tracks))
+            print(f"DONE     {os.path.basename(path)}")
     except Exception as e:
+        print(f"ERROR    {os.path.basename(path)}: {e}")
         logging.error(f"ERROR {path}: {e}")
 
-def scan(target, test=False):
+def scan(target):
     if os.path.isfile(target):
         if "[4K]" in os.path.basename(target):
-            process(target, test=test)
+            process(target)
         return
     for root, dirs, files_in_dir in os.walk(target):
         dirs.sort()
         for fname in sorted(files_in_dir):
             if os.path.splitext(fname)[1].lower() in EXTS and "[4K]" in fname:
-                process(os.path.join(root, fname), test=test)
+                process(os.path.join(root, fname))
 
 parser = argparse.ArgumentParser()
 parser.add_argument("path", nargs="?", default=".")
-parser.add_argument("--test", action="store_true", help="process first 10 minutes only")
 args = parser.parse_args()
 
 if not os.path.exists(args.path):
     print(f"Error: path not found: {args.path}")
 else:
+    print(f"Scanning {args.path}")
     logging.info(f"SCAN {args.path}")
-    scan(args.path, test=args.test)
+    scan(args.path)
     logging.info("SCAN done")
+    print("Done")
