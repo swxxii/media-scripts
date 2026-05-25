@@ -62,7 +62,7 @@ def transcode(src, duration, video_reasons, audio_reasons, test=False):
             "-c:v"] + video_codec + ["-c:a"] + audio_codec + ["-c:s", "copy", dst]
     with tqdm(total=int(total) if total else None, unit="s", unit_scale=True,
               dynamic_ncols=True, desc=os.path.basename(src), file=sys.stdout) as bar:
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         current = 0
         for line in proc.stdout:
             if line.startswith("out_time_ms="):
@@ -73,6 +73,9 @@ def transcode(src, duration, video_reasons, audio_reasons, test=False):
                         bar.update(secs - current)
                         current = secs
         proc.wait()
+        if proc.returncode != 0:
+            err = proc.stderr.read().strip()
+            tqdm.write(f"ERROR {os.path.basename(src)}: {err}")
 
 def process(path, test=False):
     if TRANSCODED_SUFFIX in os.path.basename(path) or "[transcode-test]" in os.path.basename(path):
