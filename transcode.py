@@ -27,19 +27,19 @@ def transcode(src, reasons):
     base, ext = os.path.splitext(src)
     dst = f"{base} [transcoded]{ext}"
     if os.path.exists(dst):
-        print(f"  ! skipped: output already exists")
-        return
-    print(f"  → {', '.join(reasons)} — transcoding...")
-    subprocess.run([
-        "ffmpeg", "-i", src,
+        return None
+    proc = subprocess.Popen([
+        "nice", "-n", "19",
+        "ffmpeg", "-loglevel", "error", "-i", src,
         "-map", "0:v", "-map", "0:a", "-map", "0:s?",
         "-c:v", "copy", "-c:a", "ac3", "-b:a", "640k", "-c:s", "copy",
         dst
-    ], check=True)
-    print(f"  ✓ saved: {os.path.basename(dst)}")
+    ])
+    return (proc, dst)
 
 folder = sys.argv[1] if len(sys.argv) > 1 else "."
 exts = {".mkv", ".mp4", ".m4v", ".avi", ".mov"}
+jobs = []
 
 for root, dirs, files in os.walk(folder):
     dirs.sort()
@@ -47,12 +47,14 @@ for root, dirs, files in os.walk(folder):
         if os.path.splitext(fname)[1].lower() not in exts:
             continue
         path = os.path.join(root, fname)
-        print(path)
         try:
             reasons = needs_transcode(mediainfo(path))
             if reasons:
-                transcode(path, reasons)
-            else:
-                print("  ✓ ok")
-        except Exception as e:
-            print(f"  ! error: {e}")
+                job = transcode(path, reasons)
+                if job:
+                    jobs.append(job)
+        except Exception:
+            pass
+
+for proc, dst in jobs:
+    proc.wait()
