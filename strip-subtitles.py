@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-import os, json, subprocess, logging, argparse
-from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, BarColumn, MofNCompleteColumn, TextColumn, TimeElapsedColumn
+import os, sys, json, subprocess, logging, argparse
+from tqdm import tqdm
 
 LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "strip-subtitles.log")
 STRIPPED_SUFFIX = "[cleaned-subs]"
@@ -22,25 +21,47 @@ def get_subtitle_langs(tracks):
             langs.append(t.get("Language", "").lower())
     return langs
 
+def get_duration(tracks):
+    for t in tracks:
+        if t["@type"] == "General":
+            try:
+                return float(t["Duration"])
+            except (KeyError, ValueError):
+                return None
+    return None
+
 def needs_strip(langs):
     non_english = [l for l in langs if l not in ("en", "eng", "")]
     return len(non_english) > 0
 
-def strip(src, test=False):
+def strip(src, duration, test=False):
     base, ext = os.path.splitext(src)
     dst = f"{base} {STRIPPED_SUFFIX}{ext}"
     if os.path.exists(dst):
         logging.info(f"SKIP {src} (already stripped)")
         return
     logging.info(f"START {src}")
+    total = min(duration, 600) if (test and duration) else duration
     cmd = ["nice", "-n", "19",
-           "ffmpeg", "-loglevel", "error", "-i", src,
+           "ffmpeg", "-loglevel", "error", "-progress", "pipe:1", "-i", src,
            "-map", "0:v", "-map", "0:a", "-map", "0:s:m:language:eng?",
            "-c", "copy"]
     if test:
         cmd += ["-t", "600"]
     cmd.append(dst)
-    subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    with tqdm(total=int(total) if total else None, unit="s", unit_scale=True,
+              ncols=80, desc=os.path.basename(src), file=sys.stdout) as bar:
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+        current = 0
+        for line in proc.stdout:
+            if line.startswith("out_time_ms="):
+                val = line.strip().split("=")[1]
+                if val.lstrip("-").isdigit():
+                    secs = int(val) / 1_000_000
+                    if secs > current:
+                        bar.update(secs - current)
+                        current = secs
+        proc.wait()
     logging.info(f"DONE {src}")
 
 def process(path, test=False):
@@ -53,7 +74,7 @@ def process(path, test=False):
             logging.info(f"NO SUBS {path}")
         elif needs_strip(langs):
             logging.info(f"STRIP {path} ({len(langs)} sub tracks, keeping English only)")
-            strip(path, test=test)
+            strip(path, get_duration(tracks), test=test)
         else:
             logging.info(f"OK {path} (English only)")
     except Exception as e:
@@ -63,25 +84,11 @@ def scan(target, test=False):
     if os.path.isfile(target):
         process(target, test=test)
         return
-    files = []
     for root, dirs, files_in_dir in os.walk(target):
         dirs.sort()
         for fname in sorted(files_in_dir):
             if os.path.splitext(fname)[1].lower() in EXTS:
-                files.append(os.path.join(root, fname))
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        MofNCompleteColumn(),
-        TimeElapsedColumn(),
-        console=Console(force_terminal=True, force_interactive=True),
-    ) as progress:
-        task = progress.add_task("scanning", total=len(files))
-        for path in files:
-            progress.update(task, description=os.path.basename(path))
-            process(path, test=test)
-            progress.advance(task)
+                process(os.path.join(root, fname), test=test)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("path", nargs="?", default=".")
