@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 import os, json, subprocess, logging, argparse
+from rich.progress import Progress, SpinnerColumn, BarColumn, MofNCompleteColumn, TextColumn, TimeElapsedColumn
 
 LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "strip-subtitles.log")
 STRIPPED_SUFFIX = "[cleaned-subs]"
 EXTS = {".mkv", ".mp4", ".m4v", ".avi", ".mov"}
 
 logging.basicConfig(level=logging.INFO,
-                    format="%(asctime)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+                    format="%(asctime)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S",
+                    filename=LOG_FILE)
 
 def mediainfo(path):
     result = subprocess.run(["mediainfo", "--Output=JSON", path], capture_output=True, text=True)
@@ -60,11 +62,24 @@ def scan(target, test=False):
     if os.path.isfile(target):
         process(target, test=test)
         return
-    for root, dirs, files in os.walk(target):
+    files = []
+    for root, dirs, files_in_dir in os.walk(target):
         dirs.sort()
-        for fname in sorted(files):
+        for fname in sorted(files_in_dir):
             if os.path.splitext(fname)[1].lower() in EXTS:
-                process(os.path.join(root, fname), test=test)
+                files.append(os.path.join(root, fname))
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        MofNCompleteColumn(),
+        TimeElapsedColumn(),
+    ) as progress:
+        task = progress.add_task("scanning", total=len(files))
+        for path in files:
+            progress.update(task, description=os.path.basename(path))
+            process(path, test=test)
+            progress.advance(task)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("path", nargs="?", default=".")
