@@ -51,10 +51,10 @@ def transcode(src, duration, video_reasons, audio_reasons, test=False):
     reasons = ", ".join(video_reasons + audio_reasons)
     label = "TEST" if test else "TRANSCODE"
     tqdm.write(f"{label} {os.path.basename(src)} [{reasons}]")
-    total = min(duration, 600) if (test and duration) else duration
+    total = min(duration, 300) if (test and duration) else duration
     cmd = ["nice", "-n", "19", "ffmpeg", "-loglevel", "error", "-progress", "pipe:1", "-y", "-i", src]
     if test:
-        cmd += ["-t", "600"]
+        cmd += ["-t", "300"]
     preset = "ultrafast" if test else "slow"
     video_codec = ["libx264", "-crf", "18", "-preset", preset, "-pix_fmt", "yuv420p"] if video_reasons else ["copy"]
     audio_codec = ["ac3", "-b:a", "640k"] if audio_reasons else ["copy"]
