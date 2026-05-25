@@ -93,6 +93,8 @@ args = parser.parse_args()
 
 if args.watch:
     watch()
+elif not os.path.exists(args.path):
+    print(f"Error: path not found: {args.path}")
 else:
     logging.info(f"SCAN {args.path}")
     scan(args.path, test=args.test)
