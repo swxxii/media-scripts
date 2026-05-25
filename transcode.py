@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-import sys, os, json, subprocess
+import sys, os, json, subprocess, logging
+from datetime import datetime
+
+LOG_FILE = os.path.expanduser("~/transcode.log")
+logging.basicConfig(filename=LOG_FILE, level=logging.INFO,
+                    format="%(asctime)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
 def mediainfo(path):
     result = subprocess.run(
@@ -27,7 +32,9 @@ def transcode(src, reasons):
     base, ext = os.path.splitext(src)
     dst = f"{base} [transcoded]{ext}"
     if os.path.exists(dst):
-        return None
+        logging.info(f"SKIP {src} (output exists)")
+        return
+    logging.info(f"START {src} [{', '.join(reasons)}]")
     subprocess.Popen([
         "nice", "-n", "19",
         "ffmpeg", "-loglevel", "error", "-i", src,
@@ -38,6 +45,7 @@ def transcode(src, reasons):
 
 folder = sys.argv[1] if len(sys.argv) > 1 else "."
 exts = {".mkv", ".mp4", ".m4v", ".avi", ".mov"}
+logging.info(f"SCAN {folder}")
 
 for root, dirs, files in os.walk(folder):
     dirs.sort()
@@ -49,5 +57,7 @@ for root, dirs, files in os.walk(folder):
             reasons = needs_transcode(mediainfo(path))
             if reasons:
                 transcode(path, reasons)
-        except Exception:
-            pass
+        except Exception as e:
+            logging.error(f"ERROR {path}: {e}")
+
+logging.info("SCAN done")
