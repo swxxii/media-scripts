@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, sys, json, subprocess, time, argparse
+import os, sys, json, subprocess, argparse
 from tqdm import tqdm
 
 TRANSCODED_SUFFIX = "[transcoded]"
@@ -49,7 +49,8 @@ def transcode(src, duration, video_reasons, audio_reasons, test=False):
         tqdm.write(f"SKIP {os.path.basename(src)}")
         return
     reasons = ", ".join(video_reasons + audio_reasons)
-    tqdm.write(f"TRANSCODE {os.path.basename(src)} [{reasons}]")
+    label = "TEST" if test else "TRANSCODE"
+    tqdm.write(f"{label} {os.path.basename(src)} [{reasons}]")
     total = min(duration, 600) if (test and duration) else duration
     cmd = ["nice", "-n", "19", "ffmpeg", "-loglevel", "error", "-progress", "pipe:1", "-i", src]
     if test:
@@ -93,23 +94,12 @@ def scan(target, test=False):
             if os.path.splitext(fname)[1].lower() in EXTS:
                 process(os.path.join(root, fname), test=test)
 
-def watch():
-    while True:
-        os.system("clear")
-        result = subprocess.run(["ps", "aux"], capture_output=True, text=True)
-        jobs = [l for l in result.stdout.splitlines() if "ffmpeg" in l and "grep" not in l]
-        print("\n".join(jobs) if jobs else "No active transcodes.")
-        time.sleep(2)
-
 parser = argparse.ArgumentParser()
 parser.add_argument("path", nargs="?", default=".")
-parser.add_argument("--watch", action="store_true")
-parser.add_argument("--test", action="store_true")
+parser.add_argument("--test", action="store_true", help="transcode first 10 minutes only")
 args = parser.parse_args()
 
-if args.watch:
-    watch()
-elif not os.path.exists(args.path):
+if not os.path.exists(args.path):
     print(f"Error: path not found: {args.path}")
 else:
     scan(args.path, test=args.test)
