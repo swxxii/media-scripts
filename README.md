@@ -2,6 +2,17 @@
 
 Utility scripts for media servers, backup automation, and file management.
 
+## Folder Structure
+
+```
+scripts/
+├── plex/              # Plex-related scripts (plexmeta, plex-qbt-pauser, plex-buffer, etc.)
+├── system/            # System maintenance scripts (backuparr, check-mounts, safe-reboot, permissions)
+├── tools/             # Utility tools (media-extensions, strip-subtitles, test-trackers)
+├── systemd/           # Systemd service/timer files (optional, for automatic scheduling)
+└── secrets.yml        # Credentials (create from secrets.example.yml)
+```
+
 ## Configuration
 
 Update scripts with your configuration directly within the `.py` or `.sh` files.
@@ -63,10 +74,33 @@ Checks that configured mount points are healthy and remounts them if they are st
 
 **Usage:**
 
-Run manually, or add to cron to run periodically (e.g., every 5 minutes):
+Run manually:
+```bash
+./system/check-mounts.sh
+```
+
+Or install as a systemd timer to run every 15 minutes:
 
 ```bash
-*/5 * * * * /path/to/check-mounts.sh
+# Copy timer and service files
+sudo cp systemd/check-mounts.{service,timer} /etc/systemd/system/
+
+# Edit the service file to set the correct script path (if different)
+sudo nano /etc/systemd/system/check-mounts.service
+
+# Enable and start the timer
+sudo systemctl daemon-reload
+sudo systemctl enable check-mounts.timer
+sudo systemctl start check-mounts.timer
+
+# Check status
+sudo systemctl status check-mounts.timer
+```
+
+Alternatively, add to cron to run periodically (e.g., every 5 minutes):
+
+```bash
+*/5 * * * * /path/to/system/check-mounts.sh
 ```
 
 ---

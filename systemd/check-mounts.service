@@ -1,0 +1,8 @@
+[Unit]
+Description=Check and remount network shares
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/simon/scripts/system/check-mounts.sh
