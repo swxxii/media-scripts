@@ -69,30 +69,38 @@ rsync_job "$SCRIPTS_DIR/" "$DESTDIR/scripts/" --exclude=pyenv/ --exclude=.git/ -
 # =============================================================================
 # DOCKER BACKUPS - stop containers, copy data files, start containers
 # =============================================================================
-manage_containers() {
-    local cmd="$1"
-    for c in "${CONTAINERS[@]}"; do
-        echo "$cmd $c..."
-        docker compose -f "$DOCKER_BASE_DIR/$c/docker-compose.yml" "$cmd"
-    done
-}
-
 if [ ${#CONTAINERS[@]} -gt 0 ]; then
     section "Stopping Docker containers"
-    manage_containers stop
+    for c in "${CONTAINERS[@]}"; do
+        echo "Stopping $c..."
+        docker compose -f "$DOCKER_BASE_DIR/$c/docker-compose.yml" stop
+    done
+
+    # Wait for all containers to stop
+    echo "Waiting for containers to stop..."
+    for c in "${CONTAINERS[@]}"; do
+        timeout 30 bash -c "while docker compose -f \"$DOCKER_BASE_DIR/$c/docker-compose.yml\" ps --services --filter status=running | grep -q .; do sleep 0.5; done"
+    done
 
     section "Backing up Docker containers"
 
-    # Create container backup directories
+    # Create container backup directories and sync
     for c in "${CONTAINERS[@]}"; do
         mkdir -p "$DESTDIR/$c"
-    done
-    for c in "${CONTAINERS[@]}"; do
         rsync_job "$DOCKER_BASE_DIR/$c/" "$DESTDIR/$c/"
     done
 
     section "Starting Docker containers"
-    manage_containers start
+    for c in "${CONTAINERS[@]}"; do
+        echo "Starting $c..."
+        docker compose -f "$DOCKER_BASE_DIR/$c/docker-compose.yml" start
+    done
+
+    # Wait for all containers to start
+    echo "Waiting for containers to start..."
+    for c in "${CONTAINERS[@]}"; do
+        timeout 30 bash -c "while ! docker compose -f \"$DOCKER_BASE_DIR/$c/docker-compose.yml\" ps --services --filter status=running | grep -q .; do sleep 0.5; done"
+    done
 fi
 
 # =============================================================================
