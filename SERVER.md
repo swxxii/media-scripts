@@ -160,7 +160,13 @@ done
 
 ## Scripts & Automation
 
-See [README.md](README.md) for setup and configuration of scripts.
+All automation scripts are located in `~/scripts` with full setup documentation:
+
+- **[plex/README.md](../plex/README.md)** — Plex monitoring, metadata export, buffering logs, Chromecast fixes
+- **[system/README.md](../system/README.md)** — Backup automation, mount health checks, safe reboot
+- **[tools/README.md](../tools/README.md)** — File extension restoration, subtitle stripping, tracker testing
+
+See [main README.md](../README.md) for installation, configuration, and cron scheduling.
 
 ---
 

@@ -2,6 +2,13 @@
 
 Utility scripts for media servers, backup automation, and file management.
 
+## Documentation
+
+- **[SERVER.md](SERVER.md)** — Complete media server setup guide with system configuration, Plex, Docker, and automation
+- **[plex/README.md](plex/README.md)** — Plex-specific scripts and configuration
+- **[system/README.md](system/README.md)** — System maintenance and backup automation
+- **[tools/README.md](tools/README.md)** — Utility tools for file management and testing
+
 ## Folder Structure
 
 ```
@@ -47,12 +54,9 @@ Open `config.yml` and fill in your values:
 - `docker_base_dir` — Where your Docker compose projects live
 - `scripts_dir` — This directory (`/path/to/scripts`)
 
-### 3. Review folder READMEs
+### 3. Review script documentation
 
-Each folder has additional setup instructions and dependencies:
-- [plex/README.md](plex/README.md) — Plex-specific configuration
-- [system/README.md](system/README.md) — System script setup
-- [tools/README.md](tools/README.md) — Utility tool usage
+Each folder has additional setup instructions and dependencies. See the documentation links above for details specific to plex scripts, system scripts, and utility tools.
 
 ## Scheduling Scripts
 
