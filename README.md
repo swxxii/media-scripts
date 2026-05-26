@@ -46,6 +46,30 @@ Run manually, or add to your crontab to run regularly (e.g., weekly):
 
 ---
 
+### `check-mounts.sh`
+
+Checks that configured mount points are healthy and remounts them if they are stale or unresponsive.
+
+**Features:**
+
+- Tests each mount point with a short `touch` probe (5 second timeout)
+- Lazily unmounts and remounts stale/dead mounts automatically
+- Cleans up test files on success
+
+**Setup:**
+
+1. Open `check-mounts.sh` and edit the `MOUNTS` array to list your mount points.
+
+**Usage:**
+
+Run manually, or add to cron to run periodically (e.g., every 5 minutes):
+
+```bash
+*/5 * * * * /path/to/check-mounts.sh
+```
+
+---
+
 ### `media-extensions.py`
 
 Restores file extensions for photos and videos by analyzing magic bytes.
@@ -93,6 +117,25 @@ CAUTION! This script uses destructive cleanup (`rm -rf`) for empty folders.
 
 ```bash
 ./movie-folders.sh
+```
+
+---
+
+### `permissions.sh`
+
+Sets correct ownership and permissions for media directories and Docker container data folders.
+
+**What it fixes:**
+
+- qBittorrent downloads: `qbittorrent:media`, `777`
+- Plex media library: `plex:media`, `777`
+- Plex logs: `plex:media`, `775` (allows Tautulli read access)
+- Docker container data folders (cleanuparr, filebrowser, tautulli, wordpress, uptime-kuma, gitea)
+
+**Usage:**
+
+```bash
+sudo ./permissions.sh
 ```
 
 ---
@@ -217,27 +260,71 @@ python3 plexmeta.py
 
 ---
 
-### `plex-tvos-hevc.sh`
+### `reboot.sh`
 
-Installs a custom Plex tvOS device profile that enables HEVC 10-bit (Main 10) direct play on Apple TV, which may fix stuttering caused by Plex's profile not exposing.
+Gracefully stops all running Docker containers, syncs disk buffers, then reboots the system via `systemctl`. Waits for all containers to fully stop before proceeding.
 
-The profile is installed to the user profiles directory and survives Plex updates.
+**Usage:**
+
+Run manually or schedule as a daily cron job (e.g., 5:00 AM):
+
+```bash
+# Add to root crontab
+sudo crontab -e
+
+# Run daily at 05:00
+0 5 * * * /path/to/reboot.sh >/dev/null 2>&1
+```
+
+---
+
+### `safe-reboot.sh`
+
+Minimal one-liner equivalent of `reboot.sh` — stops all Docker containers then reboots immediately.
 
 **Usage:**
 
 ```bash
-sudo ./plex-tvos-hevc.sh
+sudo ./safe-reboot.sh
 ```
 
-After running, force-quit Plex on Apple TV to reload the profile.
+---
+
+### `strip-subtitles.py`
+
+Strips embedded subtitle tracks from video files with `[4K]` in their filename using ffmpeg. Useful for removing unwanted forced subtitle tracks from 4K remuxes.
+
+**Features:**
+
+- Scans a directory recursively or processes a single file
+- Only processes files containing `[4K]` in the filename
+- Copies video and audio streams unchanged (no re-encode)
+- Progress bar per file with tqdm
+- Verifies subtitle removal after processing
+- Logs to `strip-subtitles.log`
+
+**Dependencies:**
+
+```bash
+sudo apt install ffmpeg mediainfo
+pip install tqdm
+```
+
+**Usage:**
+
+```bash
+# Scan a directory
+python3 strip-subtitles.py /path/to/media
+
+# Process a single file
+python3 strip-subtitles.py /path/to/file.mkv
+```
 
 ---
 
 ### `transcode.py`
 
 Scans a folder (recursively) for video files that will stutter when played via Plex on Apple TV, and transcodes them to a compatible format.
-
-> **Note:** If your issue is HEVC 10-bit video (common in 4K content), try `plex-tvos-hevc.sh` first — it may fix playback without needing to transcode anything.
 
 **Detects and fixes:**
 
