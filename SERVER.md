@@ -42,7 +42,7 @@ sudo apt install -y python3 python3-pip ffmpeg mediainfo cifs-utils curl git
 mkdir -p ~/docker ~/scripts
 ```
 
-Backups are stored in `/mnt/sync/Google/Backups/` (on the mounted NAS share). Ensure `/mnt/sync` is synced to cloud storage (e.g., Google Drive, Dropbox) for off-site backup protection.
+Backups are stored in `/mnt/sync/Google/Backups/` (on the mounted NAS share). Ensure `/mnt/sync` is synced to cloud storage (e.g., Google Drive).
 
 **4. Create SMB credentials file**
 
