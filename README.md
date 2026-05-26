@@ -42,19 +42,19 @@ Edit your crontab:
 crontab -e
 ```
 
-Add these lines:
+Add these lines (replace `~/scripts` with your installation path):
 ```bash
 # Backup Arr services and Docker containers - weekly Sunday 3 AM
-0 3 * * 0 /home/simon/scripts/system/backuparr.sh >> /home/simon/scripts/system/backuparr.log 2>&1
+0 3 * * 0 ~/scripts/system/backuparr.sh >> ~/scripts/system/backuparr.log 2>&1
 
 # Export Plex metadata via Tautulli - daily 2 AM
-0 2 * * * /usr/bin/python3 /home/simon/scripts/plex/plexmeta.py >> /home/simon/scripts/plex/plexmeta.log 2>&1
+0 2 * * * /usr/bin/python3 ~/scripts/plex/plexmeta.py >> ~/scripts/plex/plexmeta.log 2>&1
 
 # Check network mounts - every 5 minutes
-*/5 * * * * /home/simon/scripts/system/check-mounts.sh
+*/5 * * * * ~/scripts/system/check-mounts.sh
 
 # Ensure plex-qbt-pauser daemon is running - every hour
-0 * * * * /usr/bin/python3 /home/simon/scripts/plex/plex-qbt-pauser.py >> /home/simon/scripts/plex/plex-qbt-pauser.log 2>&1
+0 * * * * /usr/bin/python3 ~/scripts/plex/plex-qbt-pauser.py >> ~/scripts/plex/plex-qbt-pauser.log 2>&1
 ```
 
 Save and exit (in nano: `Ctrl+O`, `Enter`, `Ctrl+X`).
