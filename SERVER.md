@@ -130,21 +130,31 @@ cp -r /backup/docker/* ~/docker/
 
 All Docker containers located in `~/docker/<service>/` with `docker-compose.yml`.
 
-| Service | Container | Ports | Purpose |
-|---------|-----------|-------|---------|
-| sonarr | sonarr | None | TV show management |
-| radarr | radarr | None | Movie management |
-| prowlarr | prowlarr | None | Indexer management |
-| bazarr | bazarr | 6767 | Subtitle management |
-| cleanuparr | cleanuparr | 11011 | Cleanup automation |
-| tautulli | tautulli | None | Plex monitoring |
-| filebrowser | filebrowser | 8082 | File management |
-| gitea | gitea | 3000 (HTTP), 2222 (SSH) | Git hosting |
-| uptime-kuma | uptime-kuma | 3001 | Uptime monitoring |
-| watchtower | watchtower | None | Auto-update containers |
-| flaresolverr | flaresolverr | 8191 | Cloudflare solver |
-| signal-api | signal-api | SERVER_IP:8088 | Signal messenger (used for uptime-kuma alerts) |
-| monitor | monitor | 9090 (Prometheus), 3003 (Grafana), 8083 (cAdvisor) | Monitoring stack |
+| Service | Container | Purpose |
+|---------|-----------|---------|
+| sonarr | sonarr | TV show management |
+| radarr | radarr | Movie management |
+| prowlarr | prowlarr | Indexer management |
+| bazarr | bazarr | Subtitle management |
+| cleanuparr | cleanuparr | Cleanup automation |
+| tautulli | tautulli | Plex monitoring |
+| filebrowser | filebrowser | File management |
+| gitea | gitea | Git hosting |
+| uptime-kuma | uptime-kuma | Uptime monitoring |
+| watchtower | watchtower | Auto-update containers |
+| flaresolverr | flaresolverr | Cloudflare solver |
+| signal-api | signal-api | Signal messenger (used for uptime-kuma alerts) |
+| monitor | monitor | Monitoring stack |
+
+**Port mappings:**
+- bazarr: 6767
+- cleanuparr: 11011
+- filebrowser: 8082
+- gitea: 3000 (HTTP), 2222 (SSH)
+- uptime-kuma: 3001
+- flaresolverr: 8191
+- signal-api: SERVER_IP:8088
+- monitor: 9090 (Prometheus), 3003 (Grafana), 8083 (cAdvisor)
 
 **5. Start all Docker containers**
 
