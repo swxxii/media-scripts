@@ -14,13 +14,14 @@ Copy `secrets.example.json` to `secrets.json` and enter your sensitive credentia
 
 ### `backuparr.sh`
 
-Automated backup for Arr services and Docker containers.
+Automated backup for Arr services (Docker & native), Bazarr, qBittorrent, and other Docker containers.
 
 **Features:**
 
-- Existing backup zips from Sonarr, Radarr, and Prowlarr and Bazarr
+- Arr services: Sonarr, Radarr, Prowlarr (running as Docker containers)
+- Bazarr backups
 - qBittorrent configuration
-- Docker container data folders (stops and restarts containers)
+- Docker container data folders (stops and restarts containers during backup)
 - Syncs all backups to cloud-synced directory (Google Drive, etc.)
 - Verbose logging to `backuparr.log`
 
@@ -28,11 +29,11 @@ Automated backup for Arr services and Docker containers.
 
 1. Open `backuparr.sh` and configure the inline variables at the top of the file:
   - `DESTDIR` - Where the backups are saved
-  - `ARR_BASE` - The directory containing your Arr apps
-  - `ARR_APPS` - The list of Arr apps you have installed
+  - `ARR_BASE` - The directory containing native Arr apps (if any)
+  - `ARR_APPS` - The list of native Arr apps you have installed (now empty; use CONTAINERS for Docker arr apps)
   - `BAZARR_DATA_DIR` - Location of Bazarr's automated backups 
   - `QBITTORRENT_CONF` - Location of `qBittorrent.conf`
-  - `CONTAINERS` - The list of Docker containers you want backed up 
+  - `CONTAINERS` - The list of Docker containers you want backed up (includes sonarr, radarr, prowlarr)
   - `DOCKER_BASE_DIR` - Where your Docker container data/compose files live 
   - `SCRIPTS_DIR` - Location of the scripts folder to back up
 
@@ -130,7 +131,7 @@ Sets correct ownership and permissions for media directories and Docker containe
 - qBittorrent downloads: `qbittorrent:media`, `777`
 - Plex media library: `plex:media`, `777`
 - Plex logs: `plex:media`, `775` (allows Tautulli read access)
-- Docker container data folders (cleanuparr, filebrowser, tautulli, wordpress, uptime-kuma, gitea)
+- Docker container data folders (sonarr, radarr, prowlarr, cleanuparr, filebrowser, tautulli, wordpress, uptime-kuma, gitea)
 
 **Usage:**
 

@@ -23,8 +23,8 @@ DESTDIR="/mnt/sync/Google/Backups"
 # Appends /[app]/data/Backups/scheduled/ for each app
 ARR_BASE="/var/lib"
 
-# ARR-related apps - list of arr apps to back up
-ARR_APPS=(sonarr radarr prowlarr)
+# ARR-related apps - list of arr apps to back up (native only; all arr apps are now Docker)
+ARR_APPS=()
 
 # Bazarr backup directory
 BAZARR_DATA_DIR="/opt/bazarr/data/backup"
@@ -33,7 +33,7 @@ BAZARR_DATA_DIR="/opt/bazarr/data/backup"
 QBITTORRENT_CONF="/home/qbittorrent/.config/qBittorrent/qBittorrent.conf"
 
 # List of containers to stop/start and back up
-CONTAINERS=(cleanuparr filebrowser gitea monitor tautulli uptime-kuma wtwp)
+CONTAINERS=(sonarr radarr prowlarr cleanuparr filebrowser gitea monitor tautulli uptime-kuma wtwp)
 
 # Where compose projects live
 DOCKER_BASE_DIR="/home/simon/docker"
