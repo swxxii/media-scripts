@@ -78,7 +78,7 @@ Install dependencies:
 pip install requests rich
 ```
 
-Optionally configure in `test-trackers.py`:
+Optionally configure in [`test-trackers.py`](#test-trackerspy):
 - `TRACKER_LISTS` - Source URLs to pull potential trackers from
 - `OUTPUT_FILE` - Output file for valid trackers
 - `LOG_FILE` - Log file for test results

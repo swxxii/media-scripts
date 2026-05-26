@@ -72,17 +72,24 @@ crontab -e
 ```
 
 Copy and paste these lines (replace `/path/to/scripts` with your installation path):
+
+**[backuparr.sh](system/README.md#backuparrshs)** — Backup Arr services and Docker containers (weekly Sunday 3 AM):
 ```bash
-# Backup Arr services and Docker containers - weekly Sunday 3 AM
 0 3 * * 0 /path/to/scripts/system/backuparr.sh >> /path/to/scripts/system/backuparr.log 2>&1
+```
 
-# Export Plex metadata via Tautulli - daily 2 AM
+**[plexmeta.py](plex/README.md#plexmetapy)** — Export Plex metadata via Tautulli (daily 2 AM):
+```bash
 0 2 * * * /usr/bin/python3 /path/to/scripts/plex/plexmeta.py >> /path/to/scripts/plex/plexmeta.log 2>&1
+```
 
-# Check network mounts - every 5 minutes
+**[check-mounts.sh](system/README.md#check-mountssh)** — Check network mounts (every 5 minutes):
+```bash
 */5 * * * * /path/to/scripts/system/check-mounts.sh
+```
 
-# Ensure plex-qbt-pauser daemon is running - every hour
+**[plex-qbt-pauser.py](plex/README.md#plex-qbt-pauserpy)** — Ensure daemon is running (every hour):
+```bash
 0 * * * * /usr/bin/python3 /path/to/scripts/plex/plex-qbt-pauser.py >> /path/to/scripts/plex/plex-qbt-pauser.log 2>&1
 ```
 
