@@ -29,14 +29,17 @@ cp config.example.yml config.yml
 
 Open `config.yml` and fill in your values:
 
-**Credentials:**
+**Plex:**
 - `plex_token` — From Plex Web: library → item → Get Info → View XML → copy `X-Plex-Token` from URL
-- `tautulli_api_key` — From Tautulli: Settings → API
-- `qbittorrent_username` / `password` — From qBittorrent WebUI settings
-
-**Services:**
 - `plex_url` — Your Plex server address (e.g., `http://192.168.1.3:32400`)
+
+**Tautulli:**
+- `tautulli_api_key` — From Tautulli: Settings → API
 - `tautulli_url` — Your Tautulli server address
+
+**qBittorrent:**
+- `qbittorrent_username` — Your qBittorrent WebUI username
+- `qbittorrent_password` — Your qBittorrent WebUI password
 - `qbittorrent_host` — Your qBittorrent server IP
 
 **Paths:**
