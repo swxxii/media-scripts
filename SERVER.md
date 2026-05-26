@@ -195,8 +195,7 @@ Weekly backups run Sunday at 3 AM via `backuparr.sh`:
 - `/etc/fstab` - Mount point configuration
 
 **Cloud Backup:**
-- `/mnt/sync` should be synced to cloud storage (Google Drive, Dropbox, etc.) for off-site backup protection
-- This provides redundancy in case of local NAS failure
+- `/mnt/sync` should be synced to cloud storage (e.g. Google Drive) in case of local NAS failure
 
 **Schedules:**
 - All containers auto-restart on system reboot
