@@ -27,7 +27,7 @@ Edit `../config.yml` and configure:
 - `scripts_dir` - Location of the scripts folder to back up
 
 Edit `backuparr.sh` and configure the variables at the top if needed:
-- `DESTDIR` - Where the backups are saved (defaults to Google Drive sync)
+- `DESTDIR` - Where the backups are saved
 - `ARR_BASE` - The directory containing native Arr apps (if any)
 - `ARR_APPS` - The list of native Arr apps you have installed
 - `BAZARR_DATA_DIR` - Location of Bazarr's automated backups

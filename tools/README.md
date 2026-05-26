@@ -48,12 +48,6 @@ Useful for removing unwanted forced subtitle tracks from 4K remuxes.
 - Verifies subtitle removal after processing
 - Logs to `strip-subtitles.log`
 
-**Dependencies:**
-```bash
-sudo apt install ffmpeg mediainfo
-pip install tqdm
-```
-
 **Usage:**
 ```bash
 # Scan a directory

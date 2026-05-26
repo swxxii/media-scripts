@@ -8,7 +8,7 @@
 #
 
 # Location of your movies
-src=/volume1/Media/movies
+src=/path/to/movies
 
 # separate by newline
 export IFS=$'\n'

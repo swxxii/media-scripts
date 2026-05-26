@@ -31,7 +31,7 @@ Open `config.yml` and fill in your values:
 
 **Plex:**
 - `plex_token` — From Plex Web: library → item → Get Info → View XML → copy `X-Plex-Token` from URL
-- `plex_url` — Your Plex server address (e.g., `http://192.168.1.3:32400`)
+- `plex_url` — Your Plex server address (e.g., `http://YOUR_SERVER_IP:32400`)
 
 **Tautulli:**
 - `tautulli_api_key` — From Tautulli: Settings → API

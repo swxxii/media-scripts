@@ -8,6 +8,8 @@ Scripts for managing Plex media server, monitoring playback, and automating task
 pip install requests qbittorrent-api
 ```
 
+(Dependencies also listed in main README)
+
 ## Scripts
 
 ### `plexmeta.py`
@@ -41,11 +43,6 @@ python3 plexmeta.py
 Pause torrents when remote users are playing in Plex, then resume when they finish. Skip pausing torrents in certain categories. If any torrents remain active, switches on alternative speed limit.
 
 The first run spawns a background worker and then exits (like `nohup`).
-
-**Dependencies:**
-```bash
-pip install requests qbittorrent-api
-```
 
 **Setup:**
 1. Edit `../config.yml` and configure:
@@ -133,15 +130,3 @@ Organize movie files into individual folders for Plex compatibility.
 ```
 
 ⚠️ CAUTION: This script uses destructive cleanup (`rm -rf`) for empty folders.
-
----
-
-## Credentials
-
-These scripts require credentials in `../config.yml`:
-- `tautulli_api_key` - for plexmeta.py
-- `plex_token` - for plex-qbt-pauser.py
-- `qbittorrent_username` - for plex-qbt-pauser.py
-- `qbittorrent_password` - for plex-qbt-pauser.py
-
-Edit `../config.yml` and fill in your Plex token and server URL.
