@@ -6,367 +6,70 @@ Utility scripts for media servers, backup automation, and file management.
 
 ```
 scripts/
-├── plex/              # Plex-related scripts (plexmeta, plex-qbt-pauser, plex-buffer, etc.)
-├── system/            # System maintenance scripts (backuparr, check-mounts, safe-reboot, permissions)
-├── tools/             # Utility tools (media-extensions, strip-subtitles, test-trackers)
-├── systemd/           # Systemd service/timer files (optional, for automatic scheduling)
+├── plex/              # Plex-related scripts
+├── system/            # System maintenance scripts
+├── tools/             # Utility tools
 └── secrets.yml        # Credentials (create from secrets.example.yml)
 ```
 
-## Configuration
+## Setup
 
-Update scripts with your configuration directly within the `.py` or `.sh` files.
+1. **Clone the repository:**
+   ```bash
+   git clone <repo-url> ~/scripts
+   cd ~/scripts
+   ```
 
-Copy `secrets.example.yml` to `secrets.yml` and enter your sensitive credentials (`plexmeta.py` and `plex-qbt-pauser.py`).
+2. **Configure secrets:**
+   ```bash
+   cp secrets.example.yml secrets.yml
+   # Edit secrets.yml and add your credentials
+   ```
 
----
+3. **Review each folder's README** for script-specific setup:
+   - [plex/README.md](plex/README.md) - Plex server scripts
+   - [system/README.md](system/README.md) - System maintenance
+   - [tools/README.md](tools/README.md) - Utility tools
 
-## Scripts
+## Automation
 
-### `backuparr.sh`
-
-Automated backup for Arr services (Docker & native), Bazarr, qBittorrent, and other Docker containers.
-
-**Features:**
-
-- Arr services: Sonarr, Radarr, Prowlarr (running as Docker containers)
-- Bazarr backups
-- qBittorrent configuration
-- Docker container data folders (stops and restarts containers during backup)
-- Syncs all backups to cloud-synced directory (Google Drive, etc.)
-- Verbose logging to `backuparr.log`
-
-**Setup:**
-
-1. Open `backuparr.sh` and configure the inline variables at the top of the file:
-  - `DESTDIR` - Where the backups are saved
-  - `ARR_BASE` - The directory containing native Arr apps (if any)
-  - `ARR_APPS` - The list of native Arr apps you have installed (now empty; use CONTAINERS for Docker arr apps)
-  - `BAZARR_DATA_DIR` - Location of Bazarr's automated backups 
-  - `QBITTORRENT_CONF` - Location of `qBittorrent.conf`
-  - `CONTAINERS` - The list of Docker containers you want backed up (includes sonarr, radarr, prowlarr)
-  - `DOCKER_BASE_DIR` - Where your Docker container data/compose files live 
-  - `SCRIPTS_DIR` - Location of the scripts folder to back up
-
-**Usage:**
-
-Run manually, or add to your crontab to run regularly (e.g., weekly):
+Scripts are configured to run automatically via cron:
 
 ```bash
-0 3 * * 0 /path/to/backuparr.sh
+# Backup Arr services - weekly Sunday 3 AM
+0 3 * * 0 /home/simon/scripts/system/backuparr.sh
+
+# Export Plex metadata - daily 2 AM
+0 2 * * * /usr/bin/python3 /home/simon/scripts/plex/plexmeta.py
+
+# Check mounts - every 5 minutes
+*/5 * * * * /home/simon/scripts/system/check-mounts.sh
+
+# Ensure plex-qbt-pauser is running - every hour
+0 * * * * /usr/bin/python3 /home/simon/scripts/plex/plex-qbt-pauser.py
 ```
 
----
-
-### `check-mounts.sh`
-
-Checks that configured mount points are healthy and remounts them if they are stale or unresponsive.
-
-**Features:**
-
-- Tests each mount point with a short `touch` probe (5 second timeout)
-- Lazily unmounts and remounts stale/dead mounts automatically
-- Cleans up test files on success
-
-**Setup:**
-
-1. Open `check-mounts.sh` and edit the `MOUNTS` array to list your mount points.
-
-**Usage:**
-
-Run manually:
-```bash
-./system/check-mounts.sh
-```
-
-Or install as a systemd timer to run every 15 minutes:
-
-```bash
-# Copy timer and service files
-sudo cp systemd/check-mounts.{service,timer} /etc/systemd/system/
-
-# Edit the service file to set the correct script path (if different)
-sudo nano /etc/systemd/system/check-mounts.service
-
-# Enable and start the timer
-sudo systemctl daemon-reload
-sudo systemctl enable check-mounts.timer
-sudo systemctl start check-mounts.timer
-
-# Check status
-sudo systemctl status check-mounts.timer
-```
-
-Alternatively, add to cron to run periodically (e.g., every 5 minutes):
-
-```bash
-*/5 * * * * /path/to/system/check-mounts.sh
-```
-
----
-
-### `media-extensions.py`
-
-Restores file extensions for photos and videos by analyzing magic bytes.
-
-**Features:**
-
-- Detects file types from binary headers/magic bytes
-- Supports images: JPEG, PNG, GIF, BMP, TIFF, HEIC, HEIF, AVIF
-- Supports videos: MP4, M4V, MOV, 3GP, MKV, FLV, MPEG, OGG, AVI, WebM
-- Handles equivalent extensions (.jpg/.jpeg, .tiff/.tif, etc.)
-- Skips system files (.DS_Store, Thumbs.db, etc.)
-- Dry-run mode available for preview
-
-**Usage:**
-
-```bash
-# Preview changes without modifying files
-python3 media-extensions.py /path/to/files --dry-run
-
-# Execute and rename files (default mode)
-python3 media-extensions.py /path/to/files
-```
-
----
-
-### `movie-folders.sh`
-
-Organizes movie files into individual folders for Plex compatibility.
-
-**Features:**
-
-- Moves video files (mkv, mp4, avi, mpeg4, mpg, divx) into their own folders
-- Consolidates companion files (subtitles, nfo, etc.) with each movie
-- Cleans up small/empty folders (< 90MB)
-- Progress logging
-
-**Setup:**
-
-1. Open `movie-folders.sh`.
-2. Edit the `src` variable to point to your target directory.
-
-**Usage:**
-
-CAUTION! This script uses destructive cleanup (`rm -rf`) for empty folders.
-
-```bash
-./movie-folders.sh
-```
-
----
-
-### `permissions.sh`
-
-Sets correct ownership and permissions for media directories and Docker container data folders.
-
-**What it fixes:**
-
-- qBittorrent downloads: `qbittorrent:media`, `777`
-- Plex media library: `plex:media`, `777`
-- Plex logs: `plex:media`, `775` (allows Tautulli read access)
-- Docker container data folders (sonarr, radarr, prowlarr, cleanuparr, filebrowser, tautulli, wordpress, uptime-kuma, gitea)
-
-**Usage:**
-
-```bash
-sudo ./permissions.sh
-```
-
----
-
-### `plex-buffer.sh`
-
-Tautulli notification trigger script for logging buffering events to a log file so you can review who buffered, what title, and how many times.
-
-**Config:**
-
-- `LOG` - Log file path (default: `/scripts/plex-buffer.log`) - should be writable by docker container
-- `KEEP_LINES` - Maximum number of log lines to keep (default: `500`)
-
-The script appends each event, then trims the file to the last `KEEP_LINES` entries.
-It also uses a lock directory so overlapping Buffer Warning events do not corrupt the log.
-
-**Tautulli Setup:**
-
-1. Go to **Settings -> Notification Agents -> Add -> Script**.
-2. Set **Script Folder** to `/scripts` and select `plex-buffer.sh`.
-3. Under **Triggers**, enable **Buffer Warning**.
-4. Under **Arguments** for **Buffer Warning**, enter:
-
-```text
-{username} "{title}" {buffer_count}
-```
-
-5. Under **Conditions**, set **Stream Location** is **wan** to only log remote users.
-6. Save and restart Tautulli.
-
-**Example log line:**
-
-```text
-2026-04-12 23:05:14 AEST | alice | Inception | Count: 3
-```
-
----
-
-### `plex-chromecast-fix.sh`
-
-Run this a Plex update to fix the issue where casting from iOS to a Chromecast fails for some titles but not all. Plex update restores `Generic.xml` profile which causes this issue. More info in [plex-chromecast-fix.md](plex-chromecast-fix.md).
-
-**What it does:**
-
-- Renames `/usr/lib/plexmediaserver/Resources/Profiles/Generic.xml` to `Generic.xml.old`
-- Restarts Plex media server
-- If already renamed, prints an "Already disabled" message
-
-**Usage:**
-
-```bash
-sudo ./plex-chromecast-fix.sh
-```
-
----
-
-### `plex-qbt-pauser.py`
-
-Designed to pause torrents when remote users are playing in Plex then resume when they finish playing. Skip pausing torrents in certain categories. If any torrents remain active switches on alternative speed limit.
-
-The first run spawns a background worker and then exits (like `nohup`). 
-
-**Dependencies:**
-
-1. Run in script folder: `pip install requests qbittorrent-api`
-
-**Setup:**
-
-1. Edit `plex-qbt-pauser.py` and configure the inline variables at the top of the file:
-  - `PLEX_URL` - Plex sessions endpoint URL
-  - `QB_HOST` - qBittorrent IP address
-  - `QB_PORT` - qBittorrent WebUI port
-  - `SKIP_CAT` - Don't pause torrents in this category (use `""` to pause all)
-  - `INTERVAL` - Time between checks in seconds
-2. Edit `secrets.yml` and configure:
-  - `plex_token` *(To find this: Plex Web → library item → Get Info → View XML → copy* `X-Plex-Token` *value from URL)*
-  - `qbittorrent_username`
-  - `qbittorrent_password`
-
-**Usage:**
-
-Run it directly, or set it up as a cron job hourly to ensure script is always running in case of crash or reboot.
-
-```bash
-# Install as Cron job
-sudo ln -s /path/to/plex-qbt-pauser.py /etc/cron.hourly/plex-qbt-pauser
-
-# Restart the script
-/path/to/plex-qbt-pauser.py --restart
-
-# Monitor live logs
-tail -f /path/to/plex-qbt-pauser.log  
-```
-
----
-
-### `plexmeta.py`
-
-Exports Plex library to CSV and JSON metadata via Tautulli API so you have a backup of what was in Plex if you lose everything (e.g. NAS failure).
-
-**Features:**
-
-- Queries Tautulli for all library sections
-- Triggers CSV and JSON exports for each section
-- Polls until exports complete
-- Downloads exports files to a local folder
-- Cleans up server-side exports
-
-**Setup:**
-
-1. Install dependencies: `pip install requests`
-2. Edit `plexmeta.py` and configure the inline variables:
-  - `TAUTULLI` - Tautulli server URL and port
-  - `OUTPUT_DIR` - Folder to save exported CSVs/JSONs
-3. Edit `secrets.yml` and configure `tautulli_api_key`.
-
-**Usage:**
-
-```bash
-python3 plexmeta.py
-```
-
----
-
-### `safe-reboot.sh`
-
-Gracefully stops all running Docker containers, syncs disk buffers, then reboots the system via `systemctl`. Waits for all containers to fully stop before proceeding.
-
-**Usage:**
-
-```bash
-sudo ./safe-reboot.sh
-```
-
----
-
-### `strip-subtitles.py`
-
-Strips embedded subtitle tracks from video files with `[4K]` in their filename using ffmpeg. Useful for removing unwanted forced subtitle tracks from 4K remuxes.
-
-**Features:**
-
-- Scans a directory recursively or processes a single file
-- Only processes files containing `[4K]` in the filename
-- Copies video and audio streams unchanged (no re-encode)
-- Progress bar per file with tqdm
-- Verifies subtitle removal after processing
-- Logs to `strip-subtitles.log`
-
-**Dependencies:**
-
-```bash
-sudo apt install ffmpeg mediainfo
-pip install tqdm
-```
-
-**Usage:**
-
-```bash
-# Scan a directory
-python3 strip-subtitles.py /path/to/media
-
-# Process a single file
-python3 strip-subtitles.py /path/to/file.mkv
-```
-
----
-
-### `test-trackers.py`
-
-Tests BitTorrent tracker URLs for validity and performance.
-
-**Features:**
-
-- Fetches tracker lists from multiple public sources
-- Tests UDP and HTTP trackers concurrently
-- Measures tracker response latency
-- Filters out dead/slow trackers
-- Saves valid trackers to `valid_trackers.txt`
-- Progress bar and logging
-
-**Setup:**
-
-1. Install dependencies: `pip install requests rich`
-2. Open `test-trackers.py` and optionally configure:
-  - `TRACKER_LISTS` - Source URLs to pull potential trackers from.
-  - `OUTPUT_FILE` / `LOG_FILE` - Filepaths for output.
-
-**Usage:**
-
-```bash
-python3 test-trackers.py
-```
-
-
----
+View your crontab: `crontab -l`
+
+## Quick Reference
+
+### Plex Scripts
+- **plexmeta.py** - Export Plex library metadata
+- **plex-qbt-pauser.py** - Pause torrents during Plex playback
+- **plex-buffer.sh** - Log Plex buffer events (Tautulli integration)
+- **plex-chromecast-fix.sh** - Fix Chromecast casting issues
+- **movie-folders.sh** - Organize movies into folders
+
+### System Scripts
+- **backuparr.sh** - Backup Arr services and containers
+- **check-mounts.sh** - Check and remount network shares
+- **permissions.sh** - Fix media directory permissions
+- **safe-reboot.sh** - Gracefully reboot with container shutdown
+
+### Tools
+- **media-extensions.py** - Restore file extensions from magic bytes
+- **strip-subtitles.py** - Remove subtitle tracks from 4K files
+- **test-trackers.py** - Test BitTorrent tracker availability
 
 ## License
 
