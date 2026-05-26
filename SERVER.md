@@ -10,7 +10,7 @@ Complete documentation for building the media server stack from scratch.
 
 1. [System Setup](#system-setup)
 2. [Plex Media Server](#plex-media-server)
-3. [Docker Infrastructure](#docker-infrastructure)
+3. [Docker Containers](#docker-containers)
 4. [Scripts & Automation](#scripts--automation)
 5. [Backup Strategy](#backup-strategy)
 6. [System Information](#system-information)
@@ -88,7 +88,7 @@ sudo systemctl enable plexmediaserver
 sudo ufw allow 32400/tcp   # Allow Plex through firewall
 ```
 
-## Docker Infrastructure
+## Docker Containers
 
 **1. Install Docker**
 
