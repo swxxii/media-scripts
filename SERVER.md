@@ -172,7 +172,7 @@ See [main README.md](../README.md) for installation, configuration, and cron sch
 
 ## Backup Strategy
 
-Weekly backups run Sunday at 3 AM via [`backuparr.sh`](system/README.md#backuparrshs):
+Weekly backups run Sunday at 3 AM via `backuparr.sh`:
 
 **Backs up:**
 - Sonarr, Radarr, Prowlarr configurations

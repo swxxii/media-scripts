@@ -78,7 +78,7 @@ Tautulli notification trigger script for logging buffering events so you can rev
 
 **Tautulli Setup:**
 1. Go to **Settings → Notification Agents → Add → Script**
-2. Set **Script Folder** to this directory and select [`plex-buffer.sh`](#plex-buffersh)
+2. Set **Script Folder** to this directory and select `plex-buffer.sh`
 3. Under **Triggers**, enable **Buffer Warning**
 4. Under **Arguments**, enter: `{username} "{title}" {buffer_count}`
 5. Under **Conditions**, set **Stream Location** is **wan** to only log remote users
@@ -119,7 +119,7 @@ Organize movie files into individual folders for Plex compatibility.
 - Progress logging
 
 **Setup:**
-1. Edit [`movie-folders.sh`](#movie-foldersh) and set the `src` variable to your target directory
+1. Edit `movie-folders.sh` and set the `src` variable to your target directory
 
 **Usage:**
 ```bash

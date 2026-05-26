@@ -24,7 +24,7 @@ Edit `../config.yml` and configure:
 - `docker_base_dir` - Where your Docker container data/compose files live
 - `scripts_dir` - Location of the scripts folder to back up
 
-Edit [`backuparr.sh`](#backuparrshs) and configure the variables at the top if needed:
+Edit `backuparr.sh` and configure the variables at the top if needed:
 - `DESTDIR` - Where the backups are saved
 - `ARR_BASE` - The directory containing native Arr apps (if any)
 - `ARR_APPS` - The list of native Arr apps you have installed
@@ -52,7 +52,7 @@ Checks that configured mount points are healthy and remounts them if they are st
 
 **Setup:**
 
-Edit [`check-mounts.sh`](#check-mountssh) and set the `MOUNTS` array to list your mount points:
+Edit `check-mounts.sh` and set the `MOUNTS` array to list your mount points:
 ```bash
 MOUNTS=(
   "/mnt/nfs"
