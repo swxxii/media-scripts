@@ -20,10 +20,6 @@ import requests
 # CONFIGURATION
 # -------------------------------------------------------------------------
 
-# Plex server endpoint for checking active streaming sessions
-QB_PORT: int = 8081                        # qBittorrent port
-SKIP_CAT: str = "force"                    # Don't pause torrents in this category ("" to pause all)
-INTERVAL: int = 30                         # Polling interval in seconds
 CONFIG_FILE: str = "config.yml"            # File with credentials and configuration
 MAX_BYTES: int = 100_000                   # Max log file size before rotation
 LOG_LEVEL: int = logging.INFO              # Logging verbosity level
@@ -128,16 +124,16 @@ def load_config() -> dict:
         print("Invalid config file", file=sys.stderr)
         sys.exit(1)
     log.info("Loaded config from %s", config_path)
-    # Combine config values with hardcoded settings
+    # Combine config values with defaults
     return {
         "plex_sessions_url": config["plex_url"] + "/status/sessions",
         "plex_token": config["plex_token"],
         "qb_host": config["qbittorrent_host"],
-        "qb_port": QB_PORT,
+        "qb_port": config.get("qbittorrent_port", 8081),
         "qb_user": config["qbittorrent_username"],
         "qb_password": config["qbittorrent_password"],
-        "skip_category": SKIP_CAT,
-        "interval_seconds": INTERVAL,
+        "skip_category": config.get("qbittorrent_skip_category", "force"),
+        "interval_seconds": config.get("qbittorrent_polling_interval", 30),
     }
 
 
