@@ -9,31 +9,54 @@ scripts/
 ├── plex/              # Plex-related scripts
 ├── system/            # System maintenance scripts
 ├── tools/             # Utility tools
-└── config.yml        # Credentials (create from secrets.example.yml)
+└── config.yml         # Configuration (gitignored, not in repo)
 ```
 
 ## Setup
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repo-url> ~/scripts
-   cd ~/scripts
-   ```
+### 1. Clone the repository
 
-2. **Configure settings:**
-   ```bash
-   cp config.example.yml config.yml
-   # Edit config.yml and add your credentials and paths
-   ```
+```bash
+git clone <repo-url> ~/scripts
+cd ~/scripts
+```
 
-3. **Review each folder's README** for script-specific setup:
-   - [plex/README.md](plex/README.md) - Plex server scripts
-   - [system/README.md](system/README.md) - System maintenance
-   - [tools/README.md](tools/README.md) - Utility tools
+### 2. Create config.yml
 
-## Automation
+```bash
+cp config.example.yml config.yml
+```
 
-Scripts are configured to run automatically via cron.
+Open `config.yml` and fill in your values:
+
+**Credentials:**
+- `plex_token` — From Plex Web: library → item → Get Info → View XML → copy `X-Plex-Token` from URL
+- `tautulli_api_key` — From Tautulli: Settings → API
+- `qbittorrent_username` / `password` — From qBittorrent WebUI settings
+
+**Services:**
+- `plex_url` — Your Plex server address (e.g., `http://192.168.1.3:32400`)
+- `tautulli_url` — Your Tautulli server address
+- `qbittorrent_host` — Your qBittorrent server IP
+
+**Paths:**
+- `output_dir` — Where plexmeta exports go
+- `docker_base_dir` — Where your Docker compose projects live
+- `scripts_dir` — This directory (`/path/to/scripts`)
+
+### 3. Review folder READMEs
+
+Each folder has additional setup instructions:
+- [plex/README.md](plex/README.md) — Plex-specific configuration
+- [system/README.md](system/README.md) — System script setup
+- [tools/README.md](tools/README.md) — Utility tool usage
+
+## Scheduling Scripts
+
+Most scripts run automatically via cron. Before setting up cron, ensure:
+1. `config.yml` is configured (Step 2 above)
+2. Each script's folder README is reviewed for prerequisites
+3. Required dependencies are installed
 
 ### Add to Crontab
 
@@ -42,7 +65,7 @@ Edit your crontab:
 crontab -e
 ```
 
-Add these lines (replace `/path/to/scripts` with your installation path):
+Copy and paste these lines (replace `/path/to/scripts` with your installation path):
 ```bash
 # Backup Arr services and Docker containers - weekly Sunday 3 AM
 0 3 * * 0 /path/to/scripts/system/backuparr.sh >> /path/to/scripts/system/backuparr.log 2>&1
@@ -57,11 +80,7 @@ Add these lines (replace `/path/to/scripts` with your installation path):
 0 * * * * /usr/bin/python3 /path/to/scripts/plex/plex-qbt-pauser.py >> /path/to/scripts/plex/plex-qbt-pauser.log 2>&1
 ```
 
-Save and exit (in nano: `Ctrl+O`, `Enter`, `Ctrl+X`).
-
-### View Crontab
-
-Check your configured cron jobs:
+**View your crontab:**
 ```bash
 crontab -l
 ```
