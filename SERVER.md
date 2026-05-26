@@ -1,0 +1,206 @@
+# Server Setup Documentation
+
+Complete documentation for building the media server stack from scratch.
+
+**OS:** Xubuntu  
+**Docker:** Docker Compose for all services  
+**Backups:** `/mnt/sync/Google/Backups`
+
+## Table of Contents
+
+1. [System Setup](#system-setup)
+2. [Plex Media Server](#plex-media-server)
+3. [Docker Infrastructure](#docker-infrastructure)
+4. [Scripts & Automation](#scripts--automation)
+5. [Backup Strategy](#backup-strategy)
+6. [System Information](#system-information)
+
+---
+
+> Replace `SERVER_IP` with your server's IP and `STORAGE_IP` with your storage/NAS IP throughout this guide and in docker-compose files.
+
+## System Setup
+
+Follow these steps to set up the base system and storage.
+
+**1. Update system**
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+**2. Install system dependencies**
+
+```bash
+sudo apt update
+sudo apt install -y python3 python3-pip ffmpeg mediainfo cifs-utils curl git
+```
+
+**3. Create application directories**
+
+```bash
+mkdir -p ~/docker ~/scripts
+```
+
+Backups are stored in `/mnt/sync/Google/Backups/` (on the mounted NAS share). Ensure `/mnt/sync` is synced to cloud storage (e.g., Google Drive, Dropbox) for off-site backup protection.
+
+**4. Create SMB credentials file**
+
+```bash
+cat > ~/smbcreds.txt << 'EOF'
+username=YOUR_SMB_USERNAME
+password=YOUR_SMB_PASSWORD
+EOF
+chmod 600 ~/smbcreds.txt
+```
+
+**5. Configure SMB mounts** via `/etc/fstab`:
+- `//STORAGE_IP/Media` → `/mnt/media`
+- `//STORAGE_IP/Sync` → `/mnt/sync`
+
+**6. Configure firewall (ufw)**
+
+Enable the firewall and allow SSH and other services:
+
+```bash
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow ssh
+sudo ufw enable
+```
+
+## Plex Media Server
+
+**1. Add Plex repository with GPG key**
+
+```bash
+curl -fsSL https://downloads.plex.tv/plex-keys/PlexSign.key | sudo gpg --dearmor -o /etc/apt/keyrings/plexmediaserver.gpg
+echo "deb [signed-by=/etc/apt/keyrings/plexmediaserver.gpg] https://downloads.plex.tv/repo/deb public main" | sudo tee /etc/apt/sources.list.d/plexmediaserver.list > /dev/null
+```
+
+**2. Install and enable Plex**
+
+```bash
+sudo apt update
+sudo apt install -y plexmediaserver
+sudo systemctl start plexmediaserver
+sudo systemctl enable plexmediaserver
+sudo ufw allow 32400/tcp   # Allow Plex through firewall
+```
+
+## Docker Infrastructure
+
+**1. Install Docker**
+
+Add Docker's official repository and GPG key:
+
+```bash
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+Install Docker and Compose v2:
+
+```bash
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+```
+
+**2. Add user to docker group**
+
+The docker group is created automatically during Docker installation. Add your user:
+
+```bash
+sudo usermod -aG docker <username>
+```
+
+The group change takes effect on next login. To use docker immediately without logging out, run:
+
+```bash
+newgrp docker
+```
+
+**3. Restore docker directories** from backup or git:
+
+```bash
+cp -r /backup/docker/* ~/docker/
+```
+
+**4. Review Docker containers**
+
+All Docker containers located in `~/docker/<service>/` with `docker-compose.yml`.
+
+| Service | Container | Ports | Purpose |
+|---------|-----------|-------|---------|
+| sonarr | sonarr | None | TV show management |
+| radarr | radarr | None | Movie management |
+| prowlarr | prowlarr | None | Indexer management |
+| bazarr | bazarr | 6767 | Subtitle management |
+| cleanuparr | cleanuparr | 11011 | Cleanup automation |
+| tautulli | tautulli | None | Plex monitoring |
+| filebrowser | filebrowser | 8082 | File management |
+| gitea | gitea | 3000 (HTTP), 2222 (SSH) | Git hosting |
+| uptime-kuma | uptime-kuma | 3001 | Uptime monitoring |
+| watchtower | watchtower | None | Auto-update containers |
+| flaresolverr | flaresolverr | 8191 | Cloudflare solver |
+| signal-api | signal-api | SERVER_IP:8088 | Signal messenger |
+| wordpress | wordpress | 8085 (WordPress), SERVER_IP:8086 (phpMyAdmin) | Website |
+| monitor | monitor | 9090 (Prometheus), 3003 (Grafana), 8083 (cAdvisor) | Monitoring stack |
+
+**5. Start all Docker containers**
+
+```bash
+cd ~/docker
+for dir in */; do
+  echo "Starting $dir"
+  cd "$dir"
+  docker compose up -d
+  cd ..
+done
+```
+
+## Scripts & Automation
+
+See [README.md](README.md) for setup and configuration of scripts.
+
+---
+
+## Backup Strategy
+
+Weekly backups run Sunday at 3 AM via `backuparr.sh`:
+
+**Backs up:**
+- Sonarr, Radarr, Prowlarr configurations
+- Cleanuparr config
+- Tautulli database and cache
+- qBittorrent config
+- Docker container data folders
+- Scripts directory
+
+**Backed up to:** `/mnt/sync/Google/Backups/`
+
+**Note:** Plex Media Server is installed natively (not in Docker), and its metadata database at `/var/lib/plexmediaserver/` is not included in these backups. This is intentional — the library data is derived from scanning your actual media files and can be rebuilt. If you need to preserve Plex library metadata and watched/play history, manually back up this directory separately.
+
+---
+
+## System Information
+
+**Reboot Schedule:** Daily at 5 AM  
+**Backup Schedule:** Weekly Sunday at 3 AM  
+**Mount Check Interval:** Every 5 minutes
+
+**Critical Files:**
+- `~/smbcreds.txt` - SMB credentials (must be created before mounts work)
+- `~/scripts/config.yml` - API keys and configuration
+- `/etc/fstab` - Mount point configuration
+
+**Cloud Backup:**
+- `/mnt/sync` should be synced to cloud storage (Google Drive, Dropbox, etc.) for off-site backup protection
+- This provides redundancy in case of local NAS failure
+
+**Schedules:**
+- All containers auto-restart on system reboot
+- Watchtower auto-updates other containers (scheduled 6 AM daily)
+- Mount points auto-mount on boot with systemd automount
+- Backups are differential (rsync with --delete)
+- Config.yml is gitignored - keep local only

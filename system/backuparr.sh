@@ -2,12 +2,12 @@
 # =============================================================================
 # backuparr.sh
 # =============================================================================
-# Description  : Syncs backup zips from Sonarr, Radarr, Prowlarr, Bazarr,
+# Description  : Syncs backup zips from Sonarr, Radarr, Prowlarr,
 #                qBittorrent config and scripts folder into a cloud-synced
 #                directory. Logs are written to backuparr.log next to the
 #                script (truncated each run). Docker container data folders
-#                are also backed up; containers are stopped before and
-#                restarted after each run.
+#                (including Bazarr) are also backed up; containers are stopped
+#                before and restarted after each run.
 #
 # Usage        : Edit configuration variables at the top of this file.
 #                Run this script daily or weekly via scheduled cron job.
@@ -26,14 +26,11 @@ ARR_BASE="/var/lib"
 # ARR-related apps - list of arr apps to back up (native only; all arr apps are now Docker)
 ARR_APPS=()
 
-# Bazarr backup directory
-BAZARR_DATA_DIR="/opt/bazarr/data/backup"
-
 # qBittorrent config file
 QBITTORRENT_CONF="/home/qbittorrent/.config/qBittorrent/qBittorrent.conf"
 
 # List of containers to stop/start and back up
-CONTAINERS=(sonarr radarr prowlarr cleanuparr filebrowser gitea tautulli uptime-kuma signal-api watchtower flaresolverr monitor)
+CONTAINERS=(sonarr radarr prowlarr cleanuparr filebrowser gitea tautulli uptime-kuma signal-api watchtower flaresolverr monitor bazarr)
 
 # Read personal paths from config.yml
 _CONFIG="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../config.yml"
@@ -76,7 +73,6 @@ section "Performing folder backups"
 for app in "${ARR_APPS[@]}"; do
     mkdir -p "$DESTDIR/$app"
 done
-mkdir -p "$DESTDIR/bazarr"
 mkdir -p "$DESTDIR/qbittorrent"
 mkdir -p "$DESTDIR/scripts"
 
@@ -86,7 +82,6 @@ for app in "${ARR_APPS[@]}"; do
 done
 
 # Sync other folders
-rsync_job "$BAZARR_DATA_DIR/" "$DESTDIR/bazarr/"
 rsync_job "$QBITTORRENT_CONF" "$DESTDIR/qbittorrent/"
 rsync_job "$SCRIPTS_DIR/" "$DESTDIR/scripts/" --exclude=pyenv/ --exclude=.git/ --no-links
 
