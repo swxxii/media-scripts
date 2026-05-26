@@ -99,26 +99,6 @@ Copy and paste these lines (replace `/path/to/scripts` with your installation pa
 crontab -l
 ```
 
-## Quick Reference
-
-### Plex Scripts
-- **plexmeta.py** - Export Plex library metadata
-- **plex-qbt-pauser.py** - Pause torrents during Plex playback
-- **plex-buffer.sh** - Log Plex buffer events (Tautulli integration)
-- **plex-chromecast-fix.sh** - Fix Chromecast casting issues
-- **movie-folders.sh** - Organize movies into folders
-
-### System Scripts
-- **backuparr.sh** - Backup Arr services and containers
-- **check-mounts.sh** - Check and remount network shares
-- **permissions.sh** - Fix media directory permissions
-- **safe-reboot.sh** - Gracefully reboot with container shutdown
-
-### Tools
-- **media-extensions.py** - Restore file extensions from magic bytes
-- **strip-subtitles.py** - Remove subtitle tracks from 4K files
-- **test-trackers.py** - Test BitTorrent tracker availability
-
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
