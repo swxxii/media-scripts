@@ -260,7 +260,7 @@ python3 plexmeta.py
 
 ---
 
-### `reboot.sh`
+### `daily-reboot.sh`
 
 Gracefully stops all running Docker containers, syncs disk buffers, then reboots the system via `systemctl`. Waits for all containers to fully stop before proceeding.
 
@@ -273,7 +273,7 @@ Run manually or schedule as a daily cron job (e.g., 5:00 AM):
 sudo crontab -e
 
 # Run daily at 05:00
-0 5 * * * /path/to/reboot.sh >/dev/null 2>&1
+0 5 * * * /path/to/daily-reboot.sh >/dev/null 2>&1
 ```
 
 ---
