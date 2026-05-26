@@ -8,8 +8,6 @@ Scripts for managing Plex media server, monitoring playback, and automating task
 pip install requests qbittorrent-api
 ```
 
-(Dependencies also listed in main README)
-
 ## Scripts
 
 ### `plexmeta.py`

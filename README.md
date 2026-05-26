@@ -47,21 +47,9 @@ Open `config.yml` and fill in your values:
 - `docker_base_dir` — Where your Docker compose projects live
 - `scripts_dir` — This directory (`/path/to/scripts`)
 
-### 3. Install dependencies
+### 3. Review folder READMEs
 
-**Python packages:**
-```bash
-pip install requests qbittorrent-api rich tqdm
-```
-
-**System packages** (if using strip-subtitles.py):
-```bash
-sudo apt install ffmpeg mediainfo
-```
-
-### 4. Review folder READMEs
-
-Each folder has additional setup instructions:
+Each folder has additional setup instructions and dependencies:
 - [plex/README.md](plex/README.md) — Plex-specific configuration
 - [system/README.md](system/README.md) — System script setup
 - [tools/README.md](tools/README.md) — Utility tool usage
