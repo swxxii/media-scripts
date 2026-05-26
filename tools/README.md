@@ -43,7 +43,6 @@ Useful for removing unwanted forced subtitle tracks from 4K remuxes.
 - Copies video and audio streams unchanged (no re-encode)
 - Progress bar per file
 - Verifies subtitle removal after processing
-- Logs to `strip-subtitles.log`
 
 **Usage:**
 ```bash
