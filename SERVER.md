@@ -143,7 +143,7 @@ All Docker containers located in `~/docker/<service>/` with `docker-compose.yml`
 | uptime-kuma | uptime-kuma | 3001 | Uptime monitoring |
 | watchtower | watchtower | None | Auto-update containers |
 | flaresolverr | flaresolverr | 8191 | Cloudflare solver |
-| signal-api | signal-api | SERVER_IP:8088 | Signal messenger |
+| signal-api | signal-api | SERVER_IP:8088 | Signal messenger (used for uptime-kuma alerts) |
 | monitor | monitor | 9090 (Prometheus), 3003 (Grafana), 8083 (cAdvisor) | Monitoring stack |
 
 **5. Start all Docker containers**
