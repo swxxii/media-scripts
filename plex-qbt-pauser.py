@@ -3,7 +3,6 @@
 # Imports for system operations, logging, file handling, and API clients
 import atexit
 import fcntl
-import json
 import logging
 import os
 import signal
@@ -13,6 +12,7 @@ import time
 import xml.etree.ElementTree as ET
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+import yaml
 import qbittorrentapi
 import requests
 
@@ -26,7 +26,7 @@ QB_HOST: str = "192.168.1.3"               # qBittorrent host
 QB_PORT: int = 8081                        # qBittorrent port
 SKIP_CAT: str = "force"                    # Don't pause torrents in this category ("" to pause all)
 INTERVAL: int = 30                         # Polling interval in seconds
-SECRETS_FILE: str = "secrets.json"         # File with API credentials
+SECRETS_FILE: str = "secrets.yml"          # File with API credentials
 MAX_BYTES: int = 100_000                   # Max log file size before rotation
 LOG_LEVEL: int = logging.INFO              # Logging verbosity level
 MAX_NORMAL: int = 99                       # Max concurrent torrents when no playback
@@ -119,14 +119,14 @@ def acquire_lock():
 
 
 
-# Load API credentials and configuration from secrets.json
+# Load API credentials and configuration from secrets.yml
 def load_config() -> dict:
     # Construct path to secrets file in script directory
     secrets_path = (ROOT / SECRETS_FILE).resolve()
     try:
-        # Parse JSON from file
-        secrets = json.loads(secrets_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+        # Parse YAML from file
+        secrets = yaml.safe_load(secrets_path.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
         print("Invalid secrets file", file=sys.stderr)
         sys.exit(1)
     log.info("Loaded secrets from %s", secrets_path)
@@ -244,7 +244,7 @@ class PlexMonitor:
 
 # Main monitoring loop: check Plex, pause/resume torrents based on activity
 def main():
-    # Load API credentials from secrets.json
+    # Load API credentials from secrets.yml
     c = load_config()
     # Track state to avoid logging redundant state transitions
     paused = None

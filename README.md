@@ -6,7 +6,7 @@ Utility scripts for media servers, backup automation, and file management.
 
 Update scripts with your configuration directly within the `.py` or `.sh` files.
 
-Copy `secrets.example.json` to `secrets.json` and enter your sensitive credentials (`plexmeta.py` and `plex-qbt-pauser.py`).
+Copy `secrets.example.yml` to `secrets.yml` and enter your sensitive credentials (`plexmeta.py` and `plex-qbt-pauser.py`).
 
 ---
 
@@ -211,7 +211,7 @@ The first run spawns a background worker and then exits (like `nohup`).
   - `QB_PORT` - qBittorrent WebUI port
   - `SKIP_CAT` - Don't pause torrents in this category (use `""` to pause all)
   - `INTERVAL` - Time between checks in seconds
-2. Edit `secrets.json` and configure:
+2. Edit `secrets.yml` and configure:
   - `plex_token` *(To find this: Plex Web → library item → Get Info → View XML → copy* `X-Plex-Token` *value from URL)*
   - `qbittorrent_username`
   - `qbittorrent_password`
@@ -251,7 +251,7 @@ Exports Plex library to CSV and JSON metadata via Tautulli API so you have a bac
 2. Edit `plexmeta.py` and configure the inline variables:
   - `TAUTULLI` - Tautulli server URL and port
   - `OUTPUT_DIR` - Folder to save exported CSVs/JSONs
-3. Edit `secrets.json` and configure `tautulli_api_key`.
+3. Edit `secrets.yml` and configure `tautulli_api_key`.
 
 **Usage:**
 
@@ -301,42 +301,6 @@ python3 strip-subtitles.py /path/to/media
 
 # Process a single file
 python3 strip-subtitles.py /path/to/file.mkv
-```
-
----
-
-### `transcode.py`
-
-Scans a folder (recursively) for video files that will stutter when played via Plex on Apple TV, and transcodes them to a compatible format.
-
-**Detects and fixes:**
-
-- Video: H.264 10-bit (Hi10P), HEVC 10-bit, AV1, VP9 — re-encoded to H.264 8-bit
-- Audio: TrueHD, DTS, DTS-HD MA, Dolby Atmos — re-encoded to AC3 640k
-
-Transcoded files are saved alongside originals with a `[transcoded]` suffix. Logs to `transcode.log` in the script directory.
-
-**Dependencies:**
-
-```bash
-# Install mediainfo and ffmpeg
-sudo apt install mediainfo ffmpeg
-```
-
-**Usage:**
-
-```bash
-# Scan a folder
-python3 transcode.py /path/to/media
-
-# Scan a single file
-python3 transcode.py /path/to/file.mkv
-
-# Test mode — transcode first 10 minutes only
-python3 transcode.py /path/to/media --test
-
-# Monitor active transcodes
-python3 transcode.py --watch
 ```
 
 ---

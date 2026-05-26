@@ -14,9 +14,9 @@
 # Dependency:   `pip install requests`
 #
 # -------------------------------------------------------------------------
-import json
 import sys
 import time
+import yaml
 import requests
 from pathlib import Path
 
@@ -24,7 +24,7 @@ from pathlib import Path
 # CONFIGURATION
 # -------------------------------------------------------------------------
 TAUTULLI    = "http://192.168.1.3:8181"
-API_KEY     = json.loads((Path(__file__).resolve().parent / "secrets.json")
+API_KEY     = yaml.safe_load((Path(__file__).resolve().parent / "secrets.yml")
                 .read_text())["tautulli_api_key"]
 OUTPUT_DIR  = Path("/mnt/sync/Google/Backups/plexmeta")
 
