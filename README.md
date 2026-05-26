@@ -58,8 +58,7 @@ Each folder has additional setup instructions:
 
 Most scripts run automatically via cron. Before setting up cron, ensure:
 1. `config.yml` is configured (Step 2 above)
-2. Each script's folder README is reviewed for prerequisites
-3. Required dependencies are installed
+2. Required dependencies are installed
 
 ### Add to Crontab
 
