@@ -22,11 +22,10 @@ Exports Plex library to CSV and JSON metadata via Tautulli API so you have a bac
 - Cleans up server-side exports
 
 **Setup:**
-1. Install dependencies: `pip install requests`
-2. Edit `plexmeta.py` and configure the inline variables:
-   - `TAUTULLI` - Tautulli server URL and port
-   - `OUTPUT_DIR` - Folder to save exported CSVs/JSONs
-3. Edit `../config.yml` and configure `tautulli_api_key`.
+1. Edit `../config.yml` and configure:
+   - `tautulli_url` - Tautulli server URL
+   - `tautulli_api_key` - Your Tautulli API key
+   - `plexmeta_output_dir` - Folder to save exported CSVs/JSONs
 
 **Usage:**
 ```bash
@@ -49,16 +48,15 @@ pip install requests qbittorrent-api
 ```
 
 **Setup:**
-1. Edit `plex-qbt-pauser.py` and configure:
-   - `PLEX_URL` - Plex sessions endpoint URL
-   - `QB_HOST` - qBittorrent IP address
-   - `QB_PORT` - qBittorrent WebUI port
-   - `SKIP_CAT` - Don't pause torrents in this category (use `""` to pause all)
-   - `INTERVAL` - Time between checks in seconds
-2. Edit `../config.yml` and configure:
+1. Edit `../config.yml` and configure:
+   - `plex_url` - Your Plex server address
    - `plex_token` *(Plex Web → library item → Get Info → View XML → copy `X-Plex-Token` from URL)*
-   - `qbittorrent_username`
-   - `qbittorrent_password`
+   - `qbittorrent_host` - qBittorrent server IP
+   - `qbittorrent_username` / `password` - Your qBittorrent credentials
+2. Edit `plex-qbt-pauser.py` if you want to customize:
+   - `QB_PORT` - qBittorrent WebUI port (default: 8081)
+   - `SKIP_CAT` - Don't pause torrents in this category (default: "force")
+   - `INTERVAL` - Time between checks in seconds (default: 30)
 
 **Usage:**
 ```bash
@@ -146,4 +144,4 @@ These scripts require credentials in `../config.yml`:
 - `qbittorrent_username` - for plex-qbt-pauser.py
 - `qbittorrent_password` - for plex-qbt-pauser.py
 
-Copy `../secrets.example.yml` to `../config.yml` and fill in your values.
+Edit `../config.yml` and fill in your Plex token and server URL.

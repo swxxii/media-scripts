@@ -22,15 +22,17 @@ Automated backup for Arr services (Docker & native), Bazarr, qBittorrent, and ot
 
 **Setup:**
 
-Edit `backuparr.sh` and configure the inline variables at the top:
-- `DESTDIR` - Where the backups are saved
+Edit `../config.yml` and configure:
+- `docker_base_dir` - Where your Docker container data/compose files live
+- `scripts_dir` - Location of the scripts folder to back up
+
+Edit `backuparr.sh` and configure the variables at the top if needed:
+- `DESTDIR` - Where the backups are saved (defaults to Google Drive sync)
 - `ARR_BASE` - The directory containing native Arr apps (if any)
 - `ARR_APPS` - The list of native Arr apps you have installed
 - `BAZARR_DATA_DIR` - Location of Bazarr's automated backups
 - `QBITTORRENT_CONF` - Location of `qBittorrent.conf`
 - `CONTAINERS` - The list of Docker containers you want backed up
-- `DOCKER_BASE_DIR` - Where your Docker container data/compose files live
-- `SCRIPTS_DIR` - Location of the scripts folder to back up
 
 **Usage:**
 ```bash
