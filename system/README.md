@@ -72,24 +72,6 @@ MOUNTS=(
 
 ---
 
-### `permissions.sh`
-
-Sets correct ownership and permissions for media directories and Docker container data folders.
-
-**What it fixes:**
-- qBittorrent downloads: `qbittorrent:media`, `777`
-- Plex media library: `plex:media`, `777`
-- Plex logs: `plex:media`, `775` (allows Tautulli read access)
-- Docker container data folders (sonarr, radarr, prowlarr, cleanuparr, filebrowser, tautulli, wordpress, uptime-kuma, gitea)
-
-**Usage:**
-```bash
-sudo ./permissions.sh
-```
-
-Run this occasionally to ensure correct permissions on all media directories.
-
----
 
 ### `safe-reboot.sh`
 
@@ -114,4 +96,3 @@ All scripts are configured to run automatically via cron:
 */5 * * * * /path/to/scripts/system/check-mounts.sh
 ```
 
-Run permissions and safe-reboot manually as needed.
