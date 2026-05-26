@@ -2,18 +2,13 @@
 
 Utility scripts for file management and testing.
 
-## Dependencies
-
-```bash
-pip install requests rich tqdm
-sudo apt install ffmpeg mediainfo
-```
-
 ## Scripts
 
 ### `media-extensions.py`
 
 Restores file extensions for photos and videos by analyzing magic bytes.
+
+**Dependencies:** None (uses standard library)
 
 **Features:**
 - Detects file types from binary headers/magic bytes
@@ -37,6 +32,8 @@ python3 media-extensions.py /path/to/files
 ### `strip-subtitles.py`
 
 Strips embedded subtitle tracks from video files with `[4K]` in their filename using ffmpeg.
+
+**Dependencies:** `pip install tqdm` and `sudo apt install ffmpeg`
 
 Useful for removing unwanted forced subtitle tracks from 4K remuxes.
 
@@ -62,6 +59,8 @@ python3 strip-subtitles.py /path/to/file.mkv
 ### `test-trackers.py`
 
 Tests BitTorrent tracker URLs for validity and performance.
+
+**Dependencies:** `pip install requests rich`
 
 **Features:**
 - Fetches tracker lists from multiple public sources
