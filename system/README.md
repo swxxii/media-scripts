@@ -51,11 +51,7 @@ Checks that configured mount points are healthy and remounts them if they are st
 
 Edit `check-mounts.sh` and set the `MOUNTS` array to list your mount points:
 ```bash
-MOUNTS=(
-  "/mnt/nfs"
-  "/mnt/smb"
-  "/mnt/backup"
-)
+MOUNTS=("/mnt/media" "/mnt/sync")
 ```
 
 **Usage:**
