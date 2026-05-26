@@ -33,7 +33,7 @@ BAZARR_DATA_DIR="/opt/bazarr/data/backup"
 QBITTORRENT_CONF="/home/qbittorrent/.config/qBittorrent/qBittorrent.conf"
 
 # List of containers to stop/start and back up
-CONTAINERS=(sonarr radarr prowlarr cleanuparr filebrowser gitea monitor tautulli uptime-kuma wtwp)
+CONTAINERS=(sonarr radarr prowlarr cleanuparr filebrowser gitea monitor tautulli uptime-kuma)
 
 # Read personal paths from config.yml
 _CONFIG="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../config.yml"
