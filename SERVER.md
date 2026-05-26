@@ -130,31 +130,21 @@ cp -r /backup/docker/* ~/docker/
 
 All Docker containers located in `~/docker/<service>/` with `docker-compose.yml`.
 
-| Service | Container | Purpose |
-|---------|-----------|---------|
-| sonarr | sonarr | TV show management |
-| radarr | radarr | Movie management |
-| prowlarr | prowlarr | Indexer management |
-| bazarr | bazarr | Subtitle management |
-| cleanuparr | cleanuparr | Cleanup automation |
-| tautulli | tautulli | Plex monitoring |
-| filebrowser | filebrowser | File management |
-| gitea | gitea | Git hosting |
-| uptime-kuma | uptime-kuma | Uptime monitoring |
-| watchtower | watchtower | Auto-update containers |
-| flaresolverr | flaresolverr | Cloudflare solver |
-| signal-api | signal-api | Signal messenger (used for uptime-kuma alerts) |
-| monitor | monitor | Monitoring stack |
-
-**Port mappings:**
-- bazarr: 6767
-- cleanuparr: 11011
-- filebrowser: 8082
-- gitea: 3000 (HTTP), 2222 (SSH)
-- uptime-kuma: 3001
-- flaresolverr: 8191
-- signal-api: SERVER_IP:8088
-- monitor: 9090 (Prometheus), 3003 (Grafana), 8083 (cAdvisor)
+| Service | Container | Purpose | Port |
+|---------|-----------|---------|------|
+| sonarr | sonarr | TV show management | 8989 |
+| radarr | radarr | Movie management | 7878 |
+| prowlarr | prowlarr | Indexer management | 9696 |
+| bazarr | bazarr | Subtitle management | 6767 |
+| cleanuparr | cleanuparr | Cleanup automation | 11011 |
+| tautulli | tautulli | Plex monitoring | 8181 |
+| filebrowser | filebrowser | File management | 8082 |
+| gitea | gitea | Git hosting | 3000 (HTTP)<br>2222 (SSH) |
+| uptime-kuma | uptime-kuma | Uptime monitoring | 3001 |
+| watchtower | watchtower | Auto-update containers | — |
+| flaresolverr | flaresolverr | Cloudflare solver | 8191 |
+| signal-api | signal-api | Signal messenger (used for uptime-kuma alerts) | SERVER_IP:8088 |
+| monitor | monitor | Monitoring stack | 9090 (Prometheus)<br>3003 (Grafana)<br>8083 (cAdvisor) |
 
 **5. Start all Docker containers**
 
