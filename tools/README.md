@@ -2,6 +2,13 @@
 
 Utility scripts for file management and testing.
 
+## Dependencies
+
+```bash
+pip install requests rich tqdm
+sudo apt install ffmpeg mediainfo
+```
+
 ## Scripts
 
 ### `media-extensions.py`

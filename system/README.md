@@ -2,6 +2,10 @@
 
 Scripts for system maintenance, backup automation, and file management.
 
+## Dependencies
+
+Bash and standard Linux utilities (no extra packages required).
+
 ## Scripts
 
 ### `backuparr.sh`

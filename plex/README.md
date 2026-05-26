@@ -2,6 +2,12 @@
 
 Scripts for managing Plex media server, monitoring playback, and automating tasks.
 
+## Dependencies
+
+```bash
+pip install requests qbittorrent-api
+```
+
 ## Scripts
 
 ### `plexmeta.py`

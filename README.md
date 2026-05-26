@@ -47,7 +47,19 @@ Open `config.yml` and fill in your values:
 - `docker_base_dir` — Where your Docker compose projects live
 - `scripts_dir` — This directory (`/path/to/scripts`)
 
-### 3. Review folder READMEs
+### 3. Install dependencies
+
+**Python packages:**
+```bash
+pip install requests qbittorrent-api rich tqdm
+```
+
+**System packages** (if using strip-subtitles.py):
+```bash
+sudo apt install ffmpeg mediainfo
+```
+
+### 4. Review folder READMEs
 
 Each folder has additional setup instructions:
 - [plex/README.md](plex/README.md) — Plex-specific configuration
@@ -58,7 +70,7 @@ Each folder has additional setup instructions:
 
 Most scripts run automatically via cron. Before setting up cron, ensure:
 1. `config.yml` is configured (Step 2 above)
-2. Required dependencies are installed
+2. Dependencies are installed (Step 3 above)
 
 ### Add to Crontab
 
