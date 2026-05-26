@@ -144,7 +144,6 @@ All Docker containers located in `~/docker/<service>/` with `docker-compose.yml`
 | watchtower | watchtower | None | Auto-update containers |
 | flaresolverr | flaresolverr | 8191 | Cloudflare solver |
 | signal-api | signal-api | SERVER_IP:8088 | Signal messenger |
-| wordpress | wordpress | 8085 (WordPress), SERVER_IP:8086 (phpMyAdmin) | Website |
 | monitor | monitor | 9090 (Prometheus), 3003 (Grafana), 8083 (cAdvisor) | Monitoring stack |
 
 **5. Start all Docker containers**
