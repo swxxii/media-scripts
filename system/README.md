@@ -102,10 +102,10 @@ All scripts are configured to run automatically via cron:
 
 ```bash
 # Weekly backup (Sunday 3 AM)
-0 3 * * 0 /home/simon/scripts/system/backuparr.sh
+0 3 * * 0 /path/to/scripts/system/backuparr.sh
 
 # Mount checks (every 5 minutes)
-*/5 * * * * /home/simon/scripts/system/check-mounts.sh
+*/5 * * * * /path/to/scripts/system/check-mounts.sh
 ```
 
 Run permissions and safe-reboot manually as needed.

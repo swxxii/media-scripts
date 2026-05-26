@@ -35,11 +35,10 @@ QBITTORRENT_CONF="/home/qbittorrent/.config/qBittorrent/qBittorrent.conf"
 # List of containers to stop/start and back up
 CONTAINERS=(sonarr radarr prowlarr cleanuparr filebrowser gitea monitor tautulli uptime-kuma wtwp)
 
-# Where compose projects live
-DOCKER_BASE_DIR="/home/simon/docker"
-
-# Scripts directory
-SCRIPTS_DIR="/home/simon/scripts"
+# Read personal paths from config.yml
+_CONFIG="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../config.yml"
+DOCKER_BASE_DIR="$(python3 -c "import yaml; c=yaml.safe_load(open('$_CONFIG')); print(c['docker_base_dir'])")"
+SCRIPTS_DIR="$(python3 -c "import yaml; c=yaml.safe_load(open('$_CONFIG')); print(c['scripts_dir'])")"
 
 # Log everything to backuparr.log next to this script (overwrite)
 set -euo pipefail

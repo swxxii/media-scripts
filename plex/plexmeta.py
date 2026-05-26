@@ -23,10 +23,10 @@ from pathlib import Path
 # -------------------------------------------------------------------------
 # CONFIGURATION
 # -------------------------------------------------------------------------
-TAUTULLI    = "http://192.168.1.3:8181"
-API_KEY     = yaml.safe_load((Path(__file__).resolve().parent.parent / "secrets.yml")
-                .read_text())["tautulli_api_key"]
-OUTPUT_DIR  = Path("/mnt/sync/Google/Backups/plexmeta")
+_config    = yaml.safe_load((Path(__file__).resolve().parent.parent / "config.yml").read_text())
+TAUTULLI    = _config["tautulli_url"]
+API_KEY     = _config["tautulli_api_key"]
+OUTPUT_DIR  = Path(_config["output_dir"])
 
 POLL_SECS   = 5
 TIMEOUT     = 300

@@ -9,7 +9,7 @@ scripts/
 ├── plex/              # Plex-related scripts
 ├── system/            # System maintenance scripts
 ├── tools/             # Utility tools
-└── secrets.yml        # Credentials (create from secrets.example.yml)
+└── config.yml        # Credentials (create from secrets.example.yml)
 ```
 
 ## Setup
@@ -20,10 +20,10 @@ scripts/
    cd ~/scripts
    ```
 
-2. **Configure secrets:**
+2. **Configure settings:**
    ```bash
-   cp secrets.example.yml secrets.yml
-   # Edit secrets.yml and add your credentials
+   cp config.example.yml config.yml
+   # Edit config.yml and add your credentials and paths
    ```
 
 3. **Review each folder's README** for script-specific setup:
@@ -42,19 +42,19 @@ Edit your crontab:
 crontab -e
 ```
 
-Add these lines (replace `~/scripts` with your installation path):
+Add these lines (replace `/path/to/scripts` with your installation path):
 ```bash
 # Backup Arr services and Docker containers - weekly Sunday 3 AM
-0 3 * * 0 ~/scripts/system/backuparr.sh >> ~/scripts/system/backuparr.log 2>&1
+0 3 * * 0 /path/to/scripts/system/backuparr.sh >> /path/to/scripts/system/backuparr.log 2>&1
 
 # Export Plex metadata via Tautulli - daily 2 AM
-0 2 * * * /usr/bin/python3 ~/scripts/plex/plexmeta.py >> ~/scripts/plex/plexmeta.log 2>&1
+0 2 * * * /usr/bin/python3 /path/to/scripts/plex/plexmeta.py >> /path/to/scripts/plex/plexmeta.log 2>&1
 
 # Check network mounts - every 5 minutes
-*/5 * * * * ~/scripts/system/check-mounts.sh
+*/5 * * * * /path/to/scripts/system/check-mounts.sh
 
 # Ensure plex-qbt-pauser daemon is running - every hour
-0 * * * * /usr/bin/python3 ~/scripts/plex/plex-qbt-pauser.py >> ~/scripts/plex/plex-qbt-pauser.log 2>&1
+0 * * * * /usr/bin/python3 /path/to/scripts/plex/plex-qbt-pauser.py >> /path/to/scripts/plex/plex-qbt-pauser.log 2>&1
 ```
 
 Save and exit (in nano: `Ctrl+O`, `Enter`, `Ctrl+X`).

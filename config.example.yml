@@ -1,0 +1,17 @@
+# Plex
+plex_token: YOUR_PLEX_TOKEN
+plex_url: http://YOUR_SERVER_IP:32400
+
+# Tautulli
+tautulli_api_key: YOUR_TAUTULLI_API_KEY
+tautulli_url: http://YOUR_SERVER_IP:8181
+
+# qBittorrent
+qbittorrent_username: YOUR_QBITTORRENT_USERNAME
+qbittorrent_password: YOUR_QBITTORRENT_PASSWORD
+qbittorrent_host: YOUR_SERVER_IP
+
+# Paths
+output_dir: /path/to/output
+docker_base_dir: /path/to/docker
+scripts_dir: /path/to/scripts

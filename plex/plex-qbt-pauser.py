@@ -21,12 +21,10 @@ import requests
 # -------------------------------------------------------------------------
 
 # Plex server endpoint for checking active streaming sessions
-PLEX_URL: str = "http://192.168.1.3:32400/status/sessions"
-QB_HOST: str = "192.168.1.3"               # qBittorrent host
 QB_PORT: int = 8081                        # qBittorrent port
 SKIP_CAT: str = "force"                    # Don't pause torrents in this category ("" to pause all)
 INTERVAL: int = 30                         # Polling interval in seconds
-SECRETS_FILE: str = "secrets.yml"          # File with API credentials
+CONFIG_FILE: str = "config.yml"            # File with credentials and configuration
 MAX_BYTES: int = 100_000                   # Max log file size before rotation
 LOG_LEVEL: int = logging.INFO              # Logging verbosity level
 MAX_NORMAL: int = 99                       # Max concurrent torrents when no playback
@@ -119,25 +117,25 @@ def acquire_lock():
 
 
 
-# Load API credentials and configuration from secrets.yml
+# Load configuration from config.yml
 def load_config() -> dict:
-    # Construct path to secrets file in script directory
-    secrets_path = (ROOT / SECRETS_FILE).resolve()
+    # Construct path to config file in script directory
+    config_path = (ROOT / CONFIG_FILE).resolve()
     try:
         # Parse YAML from file
-        secrets = yaml.safe_load(secrets_path.read_text(encoding="utf-8"))
+        config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     except (OSError, yaml.YAMLError):
-        print("Invalid secrets file", file=sys.stderr)
+        print("Invalid config file", file=sys.stderr)
         sys.exit(1)
-    log.info("Loaded secrets from %s", secrets_path)
-    # Combine secrets with hardcoded config values
+    log.info("Loaded config from %s", config_path)
+    # Combine config values with hardcoded settings
     return {
-        "plex_sessions_url": PLEX_URL,
-        "plex_token": secrets["plex_token"],
-        "qb_host": QB_HOST,
+        "plex_sessions_url": config["plex_url"] + "/status/sessions",
+        "plex_token": config["plex_token"],
+        "qb_host": config["qbittorrent_host"],
         "qb_port": QB_PORT,
-        "qb_user": secrets["qbittorrent_username"],
-        "qb_password": secrets["qbittorrent_password"],
+        "qb_user": config["qbittorrent_username"],
+        "qb_password": config["qbittorrent_password"],
         "skip_category": SKIP_CAT,
         "interval_seconds": INTERVAL,
     }

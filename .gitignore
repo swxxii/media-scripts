@@ -1,7 +1,7 @@
 .DS_Store
 ._*
 permissions.sh
-secrets.yml
+config.yml
 system/backuparr.log
 plex/plex-qbt-pauser.log
 plex/plex-qbt-pauser.pid

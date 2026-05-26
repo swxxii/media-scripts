@@ -20,7 +20,7 @@ Exports Plex library to CSV and JSON metadata via Tautulli API so you have a bac
 2. Edit `plexmeta.py` and configure the inline variables:
    - `TAUTULLI` - Tautulli server URL and port
    - `OUTPUT_DIR` - Folder to save exported CSVs/JSONs
-3. Edit `../secrets.yml` and configure `tautulli_api_key`.
+3. Edit `../config.yml` and configure `tautulli_api_key`.
 
 **Usage:**
 ```bash
@@ -49,7 +49,7 @@ pip install requests qbittorrent-api
    - `QB_PORT` - qBittorrent WebUI port
    - `SKIP_CAT` - Don't pause torrents in this category (use `""` to pause all)
    - `INTERVAL` - Time between checks in seconds
-2. Edit `../secrets.yml` and configure:
+2. Edit `../config.yml` and configure:
    - `plex_token` *(Plex Web → library item → Get Info → View XML → copy `X-Plex-Token` from URL)*
    - `qbittorrent_username`
    - `qbittorrent_password`
@@ -134,10 +134,10 @@ Organize movie files into individual folders for Plex compatibility.
 
 ## Credentials
 
-These scripts require credentials in `../secrets.yml`:
+These scripts require credentials in `../config.yml`:
 - `tautulli_api_key` - for plexmeta.py
 - `plex_token` - for plex-qbt-pauser.py
 - `qbittorrent_username` - for plex-qbt-pauser.py
 - `qbittorrent_password` - for plex-qbt-pauser.py
 
-Copy `../secrets.example.yml` to `../secrets.yml` and fill in your values.
+Copy `../secrets.example.yml` to `../config.yml` and fill in your values.
