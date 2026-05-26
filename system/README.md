@@ -8,13 +8,12 @@ See [main README](../README.md) for general setup and configuration.
 
 ### `backuparr.sh`
 
-Automated backup for Arr services (Docker & native), Bazarr, qBittorrent, and other Docker containers.
+Automated backup for Docker containers including Arr services (Sonarr, Radarr, Prowlarr), Bazarr, and other services, plus qBittorrent configuration and scripts folder.
 
 **Features:**
-- Arr services: Sonarr, Radarr, Prowlarr (running as Docker containers)
-- Bazarr backups
-- qBittorrent configuration
 - Docker container data folders (stops and restarts containers during backup)
+- qBittorrent configuration
+- Scripts directory
 - Syncs all backups to cloud-synced directory (Google Drive, etc.)
 - Verbose logging to `backuparr.log`
 
@@ -26,11 +25,9 @@ Edit `../config.yml` and configure:
 
 Edit `backuparr.sh` and configure the variables at the top if needed:
 - `DESTDIR` - Where the backups are saved
-- `ARR_BASE` - The directory containing native Arr apps (if any)
-- `ARR_APPS` - The list of native Arr apps you have installed
-- `BAZARR_DATA_DIR` - Location of Bazarr's automated backups
+- `ARR_APPS` - The list of native Arr apps you have installed (if any)
 - `QBITTORRENT_CONF` - Location of `qBittorrent.conf`
-- `CONTAINERS` - The list of Docker containers you want backed up
+- `CONTAINERS` - The list of Docker containers to back up
 
 **Usage:**
 ```bash
