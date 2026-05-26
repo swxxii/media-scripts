@@ -50,10 +50,9 @@ The first run spawns a background worker and then exits (like `nohup`).
    - `plex_token` *(Plex Web → library item → Get Info → View XML → copy `X-Plex-Token` from URL)*
    - `qbittorrent_host` - qBittorrent server IP
    - `qbittorrent_username` / `password` - Your qBittorrent credentials
-2. Edit `plex-qbt-pauser.py` if you want to customize:
-   - `QB_PORT` - qBittorrent WebUI port (default: 8081)
-   - `SKIP_CAT` - Don't pause torrents in this category (default: "force")
-   - `INTERVAL` - Time between checks in seconds (default: 30)
+   - `qbittorrent_port` - qBittorrent WebUI port (optional, default: 8081)
+   - `qbittorrent_skip_category` - Category to skip pausing (optional, default: "force")
+   - `qbittorrent_polling_interval` - Check interval in seconds (optional, default: 30)
 
 **Usage:**
 ```bash

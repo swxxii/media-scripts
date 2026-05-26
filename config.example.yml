@@ -10,6 +10,9 @@ tautulli_url: http://YOUR_SERVER_IP:8181
 qbittorrent_username: YOUR_QBITTORRENT_USERNAME
 qbittorrent_password: YOUR_QBITTORRENT_PASSWORD
 qbittorrent_host: YOUR_SERVER_IP
+qbittorrent_port: 8081
+qbittorrent_skip_category: force
+qbittorrent_polling_interval: 30
 
 # Paths
 plexmeta_output_dir: /path/to/output
