@@ -12,6 +12,6 @@ qbittorrent_password: YOUR_QBITTORRENT_PASSWORD
 qbittorrent_host: YOUR_SERVER_IP
 
 # Paths
-output_dir: /path/to/output
+plexmeta_output_dir: /path/to/output
 docker_base_dir: /path/to/docker
 scripts_dir: /path/to/scripts

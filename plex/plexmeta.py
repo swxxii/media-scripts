@@ -26,7 +26,7 @@ from pathlib import Path
 _config    = yaml.safe_load((Path(__file__).resolve().parent.parent / "config.yml").read_text())
 TAUTULLI    = _config["tautulli_url"]
 API_KEY     = _config["tautulli_api_key"]
-OUTPUT_DIR  = Path(_config["output_dir"])
+OUTPUT_DIR  = Path(_config["plexmeta_output_dir"])
 
 POLL_SECS   = 5
 TIMEOUT     = 300

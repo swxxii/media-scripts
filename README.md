@@ -43,7 +43,7 @@ Open `config.yml` and fill in your values:
 - `qbittorrent_host` — Your qBittorrent server IP
 
 **Paths:**
-- `output_dir` — Where plexmeta exports go
+- `plexmeta_output_dir` — Where plexmeta exports metadata
 - `docker_base_dir` — Where your Docker compose projects live
 - `scripts_dir` — This directory (`/path/to/scripts`)
 
