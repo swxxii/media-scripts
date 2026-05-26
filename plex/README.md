@@ -8,7 +8,7 @@ Scripts for managing Plex media server, monitoring playback, and automating task
 
 Exports Plex library to CSV and JSON metadata via Tautulli API so you have a backup of what was in Plex if you lose everything (e.g. NAS failure).
 
-**Dependencies:** `pip install requests`
+**Dependencies:** `pip install requests pyyaml`
 
 **Features:**
 - Queries Tautulli for all library sections
@@ -36,7 +36,7 @@ python3 plexmeta.py
 
 Pause torrents when remote users are playing in Plex, then resume when they finish. Skip pausing torrents in certain categories. If any torrents remain active, switches on alternative speed limit.
 
-**Dependencies:** `pip install requests qbittorrent-api`
+**Dependencies:** `pip install requests qbittorrent-api pyyaml`
 
 The first run spawns a background worker and then exits (like `nohup`).
 
