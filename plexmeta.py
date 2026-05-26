@@ -152,9 +152,9 @@ def wait_for_tautulli(timeout=120):
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
-            requests.get(f"{TAUTULLI}/api/v2", params={"apikey": API_KEY, "cmd": "arnold"}, timeout=5)
+            api("get_libraries_table")
             return
-        except requests.exceptions.ConnectionError:
+        except Exception:
             time.sleep(5)
     raise TimeoutError(f"Tautulli did not become reachable within {timeout}s")
 
