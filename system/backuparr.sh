@@ -2,12 +2,10 @@
 # =============================================================================
 # backuparr.sh
 # =============================================================================
-# Description  : Syncs backup zips from Sonarr, Radarr, Prowlarr,
-#                qBittorrent config and scripts folder into a cloud-synced
-#                directory. Logs are written to backuparr.log next to the
-#                script (truncated each run). Docker container data folders
-#                (including Bazarr) are also backed up; containers are stopped
-#                before and restarted after each run.
+# Description  : Backs up Docker container data folders, qBittorrent config,
+#                and scripts folder into a cloud-synced directory. Containers
+#                are stopped before backup and restarted after. Logs are written
+#                to backuparr.log next to the script (truncated each run).
 #
 # Usage        : Edit configuration variables at the top of this file.
 #                Run this script daily or weekly via scheduled cron job.
@@ -18,13 +16,6 @@
 
 # Backup destination - should be synced to google drive or similar
 DESTDIR="/mnt/sync/Google/Backups"
-
-# Base folder where each ARR app stores its data
-# Appends /[app]/data/Backups/scheduled/ for each app
-ARR_BASE="/var/lib"
-
-# ARR-related apps - list of arr apps to back up (native only; all arr apps are now Docker)
-ARR_APPS=()
 
 # qBittorrent config file
 QBITTORRENT_CONF="/home/qbittorrent/.config/qBittorrent/qBittorrent.conf"
@@ -65,23 +56,13 @@ rsync_job() {
 }
 
 # =============================================================================
-# FOLDER BACKUPS - rsync ARR backups, Bazarr, qBittorrent, and scripts
+# FOLDER BACKUPS - rsync qBittorrent and scripts
 # =============================================================================
 section "Performing folder backups"
 
-# Create destination directories
-for app in "${ARR_APPS[@]}"; do
-    mkdir -p "$DESTDIR/$app"
-done
 mkdir -p "$DESTDIR/qbittorrent"
 mkdir -p "$DESTDIR/scripts"
 
-# Sync each ARR backup folder
-for app in "${ARR_APPS[@]}"; do
-    rsync_job "$ARR_BASE/$app/Backups/scheduled/" "$DESTDIR/$app/"
-done
-
-# Sync other folders
 rsync_job "$QBITTORRENT_CONF" "$DESTDIR/qbittorrent/"
 rsync_job "$SCRIPTS_DIR/" "$DESTDIR/scripts/" --exclude=pyenv/ --exclude=.git/ --no-links
 

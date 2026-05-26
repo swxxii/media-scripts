@@ -25,7 +25,6 @@ Edit `../config.yml` and configure:
 
 Edit `backuparr.sh` and configure the variables at the top if needed:
 - `DESTDIR` - Where the backups are saved
-- `ARR_APPS` - The list of native Arr apps you have installed (if any)
 - `QBITTORRENT_CONF` - Location of `qBittorrent.conf`
 - `CONTAINERS` - The list of Docker containers to back up
 
