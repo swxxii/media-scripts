@@ -2,6 +2,7 @@
 ._*
 permissions.sh
 secrets.json
+backuparr.log
 plex-qbt-pauser.log
 plex-qbt-pauser.pid
 pyenv/*

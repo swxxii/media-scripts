@@ -43,7 +43,7 @@ SCRIPTS_DIR="/home/simon/scripts"
 
 # Log everything to backuparr.log next to this script (overwrite)
 set -euo pipefail
-LOGFILE="$(dirname "${BASH_SOURCE[0]}")/backuparr.log"
+LOGFILE="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/backuparr.log"
 : >"$LOGFILE"
 
 # Log output to logfile only
