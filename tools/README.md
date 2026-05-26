@@ -2,6 +2,8 @@
 
 Utility scripts for file management and testing.
 
+See [main README](../README.md) for general setup and configuration.
+
 ## Scripts
 
 ### `media-extensions.py`

@@ -2,6 +2,8 @@
 
 Scripts for managing Plex media server, monitoring playback, and automating tasks.
 
+See [main README](../README.md) for general setup and configuration.
+
 ## Scripts
 
 ### `plexmeta.py`

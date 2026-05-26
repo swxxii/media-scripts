@@ -2,6 +2,8 @@
 
 Scripts for system maintenance, backup automation, and file management.
 
+See [main README](../README.md) for general setup and configuration.
+
 ## Scripts
 
 ### `backuparr.sh`
