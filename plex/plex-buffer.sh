@@ -1,6 +1,7 @@
 #!/bin/bash
 
-LOG=${LOG:-/scripts/plex-buffer.log}
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+LOG=${LOG:-${SCRIPT_DIR}/plex-buffer.log}
 KEEP_LINES=${KEEP_LINES:-500}
 LOCK_DIR="${LOG}.lockdir"
 tmp_file=""

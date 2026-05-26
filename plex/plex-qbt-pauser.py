@@ -36,7 +36,7 @@ MAX_LIMITED: int = 1                       # Max concurrent torrents during play
 # INITIAL SETUP
 # -------------------------------------------------------------------------
 
-ROOT = Path(__file__).resolve().parent     # Script directory
+ROOT = Path(__file__).resolve().parent.parent  # Project root (where secrets.yml is)
 SCRIPT = Path(__file__).resolve()          # Script file path
 LOG_FILE = SCRIPT.with_suffix(".log")      # Log file path
 PID_FILE = SCRIPT.with_suffix(".pid")      # Lock file path
