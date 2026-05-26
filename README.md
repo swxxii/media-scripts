@@ -260,27 +260,9 @@ python3 plexmeta.py
 
 ---
 
-### `daily-reboot.sh`
-
-Gracefully stops all running Docker containers, syncs disk buffers, then reboots the system via `systemctl`. Waits for all containers to fully stop before proceeding.
-
-**Usage:**
-
-Run manually or schedule as a daily cron job (e.g., 5:00 AM):
-
-```bash
-# Add to root crontab
-sudo crontab -e
-
-# Run daily at 05:00
-0 5 * * * /path/to/daily-reboot.sh >/dev/null 2>&1
-```
-
----
-
 ### `safe-reboot.sh`
 
-Minimal one-liner equivalent of `reboot.sh` — stops all Docker containers then reboots immediately.
+Gracefully stops all running Docker containers, syncs disk buffers, then reboots the system via `systemctl`. Waits for all containers to fully stop before proceeding.
 
 **Usage:**
 
