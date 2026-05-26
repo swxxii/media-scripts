@@ -9,3 +9,4 @@ pyenv/*
 tools/response_log.txt
 plex/plex-buffer.log*
 pyenv/
+__pycache__/
