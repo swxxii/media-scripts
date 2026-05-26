@@ -33,23 +33,38 @@ scripts/
 
 ## Automation
 
-Scripts are configured to run automatically via cron:
+Scripts are configured to run automatically via cron.
 
+### Add to Crontab
+
+Edit your crontab:
 ```bash
-# Backup Arr services - weekly Sunday 3 AM
-0 3 * * 0 /home/simon/scripts/system/backuparr.sh
-
-# Export Plex metadata - daily 2 AM
-0 2 * * * /usr/bin/python3 /home/simon/scripts/plex/plexmeta.py
-
-# Check mounts - every 5 minutes
-*/5 * * * * /home/simon/scripts/system/check-mounts.sh
-
-# Ensure plex-qbt-pauser is running - every hour
-0 * * * * /usr/bin/python3 /home/simon/scripts/plex/plex-qbt-pauser.py
+crontab -e
 ```
 
-View your crontab: `crontab -l`
+Add these lines:
+```bash
+# Backup Arr services and Docker containers - weekly Sunday 3 AM
+0 3 * * 0 /home/simon/scripts/system/backuparr.sh >> /home/simon/scripts/system/backuparr.log 2>&1
+
+# Export Plex metadata via Tautulli - daily 2 AM
+0 2 * * * /usr/bin/python3 /home/simon/scripts/plex/plexmeta.py >> /home/simon/scripts/plex/plexmeta.log 2>&1
+
+# Check network mounts - every 5 minutes
+*/5 * * * * /home/simon/scripts/system/check-mounts.sh
+
+# Ensure plex-qbt-pauser daemon is running - every hour
+0 * * * * /usr/bin/python3 /home/simon/scripts/plex/plex-qbt-pauser.py >> /home/simon/scripts/plex/plex-qbt-pauser.log 2>&1
+```
+
+Save and exit (in nano: `Ctrl+O`, `Enter`, `Ctrl+X`).
+
+### View Crontab
+
+Check your configured cron jobs:
+```bash
+crontab -l
+```
 
 ## Quick Reference
 
