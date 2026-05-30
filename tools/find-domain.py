@@ -9,6 +9,12 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
 try:
+    import whois
+except ImportError:
+    print("Error: python-whois package not found. Install with: pip install python-whois", file=sys.stderr)
+    sys.exit(1)
+
+try:
     import dns.resolver
 except ImportError:
     print("Error: dnspython package not found. Install with: pip install dnspython", file=sys.stderr)
@@ -59,20 +65,82 @@ def get_english_words_with_suffix(suffix, max_length):
     return words
 
 def is_domain_available(domain):
-    """Check if domain is available using DNS SOA lookup (completely free, no WHOIS needed)"""
-    # SOA (Start of Authority) records exist only for registered domains.
-    # If domain has no SOA, it's available. If it has SOA, it's registered.
+    """Check domain availability via WHOIS, falling back to DNS SOA."""
+    try:
+        w = whois.whois(domain)
+        if any([w.domain_name, w.registrar, w.creation_date]):
+            return False
+        # Inconclusive (unparsed TLD response) — fall through to DNS
+    except whois.exceptions.WhoisDomainNotFoundError:
+        return True  # WHOIS explicitly says not found
+    except Exception:
+        pass  # Fall through to DNS
+
+    # DNS SOA fallback — SOA records exist only for registered domains
     try:
         dns.resolver.resolve(domain, 'SOA', tcp=False)
-        return False  # Has SOA record, domain is registered
+        return False
     except (dns.resolver.NXDOMAIN, dns.resolver.NoNameservers):
-        return True  # No SOA record, domain is available
-    except (dns.resolver.NoAnswer, dns.resolver.Timeout):
-        return True  # No answer or timeout, treat as available
+        return True
     except Exception:
-        return True  # Any error, treat as available
+        return True
+
+def run_tests():
+    """Integration tests against known domains across the 20 most popular TLDs."""
+    registered = [
+        # domain          TLD
+        "google.com",    # .com
+        "cloudflare.net", # .net
+        "mozilla.org",   # .org
+        "spiegel.de",    # .de
+        "amazon.fr",     # .fr
+        "google.it",     # .it
+        "google.pl",     # .pl
+        "google.ca",     # .ca
+        "google.es",     # .es
+        "amazon.jp",     # .jp
+        "github.io",     # .io
+        "google.co",     # .co
+        "google.nl",     # .nl
+        "yandex.ru",     # .ru
+        "google.uk",     # .uk
+        "google.au",     # .au
+        "amazon.in",     # .in
+        "google.me",     # .me
+        "google.tv",     # .tv
+        "amazon.eu",     # .eu
+    ]
+    available = [
+        "qxzjvwpbmfake.com",
+        "zzznotrealdomain.net",
+        "vwxqzunregistered.org",
+    ]
+
+    passed = failed = 0
+    print("Running tests...\n")
+
+    for domain in registered:
+        result = is_domain_available(domain)
+        ok = not result
+        print(f"  {'PASS' if ok else 'FAIL'}  {domain}  (expected: registered, got: {'available' if result else 'registered'})")
+        if ok: passed += 1
+        else: failed += 1
+
+    for domain in available:
+        result = is_domain_available(domain)
+        ok = result
+        print(f"  {'PASS' if ok else 'FAIL'}  {domain}  (expected: available, got: {'available' if result else 'registered'})")
+        if ok: passed += 1
+        else: failed += 1
+
+    print(f"\n{passed}/{passed + failed} passed")
+    sys.exit(0 if failed == 0 else 1)
+
 
 def main():
+    if '-t' in sys.argv or '--test' in sys.argv:
+        run_tests()
+
     if len(sys.argv) < 3:
         print("Usage: python find-domain.py <suffixes> <max_length> [-v] [--fresh]", file=sys.stderr)
         print("Examples:", file=sys.stderr)
@@ -81,6 +149,7 @@ def main():
         print("Options:", file=sys.stderr)
         print("  -v, --verbose  Print all domain checks (including registered)", file=sys.stderr)
         print("  --fresh        Bypass cache and check all domains again", file=sys.stderr)
+        print("  -t, --test     Run integration tests against known domains", file=sys.stderr)
         sys.exit(1)
 
     suffixes_arg = sys.argv[1]
@@ -135,8 +204,8 @@ def main():
 
         return domain if is_available else None
 
-    # Use ThreadPoolExecutor with 5 concurrent threads (respectful to WHOIS servers)
-    with ThreadPoolExecutor(max_workers=5) as executor:
+    # WHOIS servers rate-limit aggressively, keep concurrency low
+    with ThreadPoolExecutor(max_workers=3) as executor:
         results = executor.map(check_domain_task, domains_to_check)
         available_domains = [domain for domain in tqdm(results, total=len(domains_to_check), desc="Checking domains", unit="domain") if domain is not None]
 

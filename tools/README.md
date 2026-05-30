@@ -61,14 +61,17 @@ python3 strip-subtitles.py /path/to/file.mkv
 
 Finds available domains where the prefix + TLD suffix forms an English word (e.g. `mu.ch`, `bea.ch`, `rea.ch`).
 
-**Dependencies:** `pip install dnspython english-words tqdm`
+**Dependencies:** `pip install python-whois dnspython english-words tqdm`
 
 **Features:**
-- Checks availability via DNS SOA lookup (free, no WHOIS API needed)
+- Checks availability via WHOIS with DNS SOA as fallback for unsupported TLDs
 - Supports multiple TLD suffixes in one run
-- Caches registered domains to skip on reruns
-- `--fresh` flag to bypass cache and recheck all domains
+- Caches registered domains to skip on reruns (`--fresh` to bypass)
+- Verbose mode (`-v`) to show all checks, not just available domains
+- Integration tests across 20 popular TLDs (`-t`)
 - Concurrent checks with a progress bar
+
+> **Note:** Results may not be 100% accurate. WHOIS responses vary by registrar and TLD — some return ambiguous data for unregistered domains, causing the DNS fallback to be used instead. DNS SOA checks can produce false positives if nameservers are unreachable or during propagation delays after registration. Always verify through a registrar before attempting to register.
 
 **Usage:**
 ```bash
@@ -83,6 +86,9 @@ python3 find-domain.py ch 8 -v
 
 # Bypass cache and recheck everything
 python3 find-domain.py ch 8 --fresh
+
+# Run integration tests against known domains across 20 popular TLDs
+python3 find-domain.py -t
 ```
 
 Arguments:
