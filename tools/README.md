@@ -57,6 +57,40 @@ python3 strip-subtitles.py /path/to/file.mkv
 
 ---
 
+### `find-domain.py`
+
+Finds available domains where the prefix + TLD suffix forms an English word (e.g. `mu.ch`, `bea.ch`, `rea.ch`).
+
+**Dependencies:** `pip install dnspython english-words tqdm`
+
+**Features:**
+- Checks availability via DNS SOA lookup (free, no WHOIS API needed)
+- Supports multiple TLD suffixes in one run
+- Caches registered domains to skip on reruns
+- `--fresh` flag to bypass cache and recheck all domains
+- Concurrent checks with a progress bar
+
+**Usage:**
+```bash
+# Single TLD
+python3 find-domain.py net 10
+
+# Multiple TLDs, max word length 12
+python3 find-domain.py 'com,net,io' 12
+
+# Verbose (show all checks, not just available)
+python3 find-domain.py ch 8 -v
+
+# Bypass cache and recheck everything
+python3 find-domain.py ch 8 --fresh
+```
+
+Arguments:
+- `suffixes` — TLD or comma-separated list of TLDs (without leading dot)
+- `max_length` — maximum total word length to consider
+
+---
+
 ### `test-trackers.py`
 
 Tests BitTorrent tracker URLs for validity and performance.
