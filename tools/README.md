@@ -14,7 +14,7 @@ Restores file extensions for photos and videos by analyzing magic bytes.
 
 **Features:**
 - Detects file types from binary headers/magic bytes
-- Supports images: JPEG, PNG, GIF, BMP, TIFF, HEIC, HEIF, AVIF
+- Supports images: JPEG, PNG, GIF, BMP, TIFF, HEIC, HEIF, AVIF, WebP
 - Supports videos: MP4, M4V, MOV, 3GP, MKV, FLV, MPEG, OGG, AVI, WebM
 - Handles equivalent extensions (.jpg/.jpeg, .tiff/.tif, etc.)
 - Skips system files (.DS_Store, Thumbs.db, etc.)
@@ -27,6 +27,12 @@ python3 media-extensions.py /path/to/files --dry-run
 
 # Execute and rename files (default mode)
 python3 media-extensions.py /path/to/files
+
+# Move files with no recognized type to a separate folder
+python3 media-extensions.py /path/to/files --move-unknown /path/to/unknown
+
+# Also clean problematic characters from filenames
+python3 media-extensions.py /path/to/files --sanitize-names
 ```
 
 ---
@@ -35,7 +41,7 @@ python3 media-extensions.py /path/to/files
 
 Strips embedded subtitle tracks from video files with `[4K]` in their filename using ffmpeg.
 
-**Dependencies:** `pip install tqdm` and `sudo apt install ffmpeg`
+**Dependencies:** `pip install tqdm` and `sudo apt install ffmpeg mediainfo`
 
 Useful for removing unwanted forced subtitle tracks from 4K remuxes.
 

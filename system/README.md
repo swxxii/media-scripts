@@ -11,11 +11,12 @@ See [main README](../README.md) for general setup and configuration.
 Automated backup for Docker containers including Arr services (Sonarr, Radarr, Prowlarr), Bazarr, and other services, plus qBittorrent configuration and scripts folder.
 
 **Features:**
-- Docker container data folders (stops and restarts containers during backup)
+- Writes each backup as a compressed `.tgz` archive into a cloud-synced directory (Google Drive, etc.)
+- Docker container data folders (stops and restarts containers around the backup)
 - qBittorrent configuration
-- Scripts directory
-- Syncs all backups to cloud-synced directory (Google Drive, etc.)
-- Verbose logging to `backuparr.log`
+- Scripts directory (excludes `pyenv` and `.git`)
+- Per-container archive excludes (e.g. `MediaCover`, `cache`) to keep archives small
+- Verbose logging to `backuparr.log` (truncated each run)
 
 **Setup:**
 
@@ -24,9 +25,10 @@ Edit `../config.yml` and configure:
 - `scripts_dir` - Location of the scripts folder to back up
 
 Edit `backuparr.sh` and configure the variables at the top if needed:
-- `DESTDIR` - Where the backups are saved
+- `DESTDIR` - Where the `.tgz` archives are saved (should be a cloud-synced folder)
 - `QBITTORRENT_CONF` - Location of `qBittorrent.conf`
-- `CONTAINERS` - The list of Docker containers to back up
+- `CONTAINERS` - The list of Docker containers to stop and back up
+- `EXCLUDES` - Optional per-container paths to leave out of the archive
 
 **Usage:**
 ```bash
@@ -65,7 +67,7 @@ MOUNTS=("/mnt/media" "/mnt/sync")
 
 ### `safe-reboot.sh`
 
-Gracefully stops all running Docker containers, syncs disk buffers, then reboots the system via `systemctl`. Waits for all containers to fully stop before proceeding.
+Gracefully stops all running Docker containers (waiting up to 60s for them to stop), lazily unmounts the network mounts (`/mnt/media`, `/mnt/sync`), syncs disk buffers, then reboots the system via `systemctl`.
 
 **Usage:**
 ```bash

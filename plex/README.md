@@ -57,8 +57,11 @@ The first run spawns a background worker and then exits (like `nohup`).
 # Run directly (spawns background worker)
 python3 plex-qbt-pauser.py
 
-# Restart the script
+# Restart the script (kills any running worker, then starts a new one)
 python3 plex-qbt-pauser.py --restart
+
+# Stop the running worker without starting a new one
+python3 plex-qbt-pauser.py --quit
 
 # Monitor live logs
 tail -f plex-qbt-pauser.log

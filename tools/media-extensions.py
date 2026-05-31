@@ -129,8 +129,7 @@ def main():
     p.add_argument('--sanitize-names', action='store_true', help='Clean problematic chars from filenames')
     a = p.parse_args()
     
-    dry_run = a.dry_run or a.interactive
-    process(a.directory, dry_run=dry_run, interactive=a.interactive, 
+    process(a.directory, dry_run=a.dry_run, interactive=a.interactive,
             move_unknown=a.move_unknown, sanitize_names=a.sanitize_names)
 
 if __name__ == '__main__': main()

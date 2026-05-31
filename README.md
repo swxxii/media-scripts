@@ -74,7 +74,8 @@ crontab -e
 Copy and paste these lines (replace `/path/to/scripts` with your installation path):
 ```bash
 # Backup Arr services and Docker containers - weekly Sunday 3 AM
-0 3 * * 0 /path/to/scripts/system/backuparr.sh >> /path/to/scripts/system/backuparr.log 2>&1
+# (writes its own backuparr.log next to the script)
+0 3 * * 0 /path/to/scripts/system/backuparr.sh
 
 # Export Plex metadata via Tautulli - daily 2 AM
 0 2 * * * /usr/bin/python3 /path/to/scripts/plex/plexmeta.py >> /path/to/scripts/plex/plexmeta.log 2>&1
