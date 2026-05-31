@@ -3,9 +3,10 @@
 # backuparr.sh
 # =============================================================================
 # Description  : Backs up Docker container data folders, qBittorrent config,
-#                and scripts folder into a cloud-synced directory. Containers
-#                are stopped before backup and restarted after. Logs are written
-#                to backuparr.log next to the script (truncated each run).
+#                and scripts folder as compressed .tgz archives in a
+#                cloud-synced directory. Containers are stopped before backup
+#                and restarted after. Logs are written to backuparr.log next to
+#                the script (truncated each run).
 #
 # Usage        : Edit configuration variables at the top of this file.
 #                Run this script daily or weekly via scheduled cron job.
@@ -22,6 +23,13 @@ QBITTORRENT_CONF="/home/qbittorrent/.config/qBittorrent/qBittorrent.conf"
 
 # List of containers to stop/start and back up
 CONTAINERS=(sonarr radarr prowlarr cleanuparr filebrowser gitea tautulli uptime-kuma signal-api monitor bazarr)
+
+# Per-container archive excludes (relative to the container's data folder)
+declare -A EXCLUDES=(
+    ["radarr"]="config/MediaCover"
+    ["sonarr"]="config/MediaCover"
+    ["tautulli"]="cache"
+)
 
 # Read personal paths from config.yml
 _CONFIG="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../config.yml"
@@ -44,30 +52,29 @@ section() {
     echo '------------------------------------------------------------'
 }
 
-# Perform rsync with optional extra arguments
-rsync_job() {
-    local src="$1" dest="$2"
+# Create a .tgz archive of a source folder/file with optional extra tar args
+tar_job() {
+    local src="$1" dest_tgz="$2"
     shift 2
     local extra=("$@")
-    local flags=("-a" "--delete")
-    echo "Backing up $(basename "$dest")..."
-    mkdir -p "$dest"
-    rsync "${flags[@]}" "${extra[@]}" "$src" "$dest"
+    echo "Backing up $(basename "$dest_tgz")..."
+    mkdir -p "$(dirname "$dest_tgz")"
+    tar -czf "$dest_tgz" "${extra[@]}" \
+        -C "$(dirname "${src%/}")" "$(basename "${src%/}")"
 }
 
 # =============================================================================
-# FOLDER BACKUPS - rsync qBittorrent and scripts
+# FOLDER BACKUPS - archive qBittorrent and scripts
 # =============================================================================
 section "Performing folder backups"
 
-mkdir -p "$DESTDIR/qbittorrent"
-mkdir -p "$DESTDIR/scripts"
+mkdir -p "$DESTDIR"
 
-rsync_job "$QBITTORRENT_CONF" "$DESTDIR/qbittorrent/"
-rsync_job "$SCRIPTS_DIR/" "$DESTDIR/scripts/" --exclude=pyenv/ --exclude=.git/ --no-links
+tar_job "$QBITTORRENT_CONF" "$DESTDIR/qbittorrent.tgz"
+tar_job "$SCRIPTS_DIR/" "$DESTDIR/scripts.tgz" --exclude='pyenv' --exclude='.git'
 
 # =============================================================================
-# DOCKER BACKUPS - stop containers, copy data files, start containers
+# DOCKER BACKUPS - stop containers, archive data folders, start containers
 # =============================================================================
 if [ ${#CONTAINERS[@]} -gt 0 ]; then
     section "Stopping Docker containers"
@@ -84,10 +91,13 @@ if [ ${#CONTAINERS[@]} -gt 0 ]; then
 
     section "Backing up Docker containers"
 
-    # Create container backup directories and sync
+    # Archive each container's data folder into a .tgz
     for c in "${CONTAINERS[@]}"; do
-        mkdir -p "$DESTDIR/$c"
-        rsync_job "$DOCKER_BASE_DIR/$c/" "$DESTDIR/$c/"
+        if [ -n "${EXCLUDES[$c]:-}" ]; then
+            tar_job "$DOCKER_BASE_DIR/$c/" "$DESTDIR/$c.tgz" --exclude="${EXCLUDES[$c]}"
+        else
+            tar_job "$DOCKER_BASE_DIR/$c/" "$DESTDIR/$c.tgz"
+        fi
     done
 
     section "Starting Docker containers"
