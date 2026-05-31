@@ -4,7 +4,7 @@ Find available domains where prefix + suffix (without the period) forms an Engli
 For example: mu.ch = "much", bea.ch = "beach", rea.ch = "reach"
 """
 import sys
-import hashlib
+import time
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
@@ -32,27 +32,34 @@ except ImportError:
     print("Error: tqdm package not found. Install with: pip install tqdm", file=sys.stderr)
     sys.exit(1)
 
-def get_cache_file(suffixes_arg, max_length):
-    """Generate cache file path based on suffixes and max_length"""
-    cache_key = f"{suffixes_arg}_{max_length}"
-    cache_hash = hashlib.md5(cache_key.encode()).hexdigest()[:8]
-    return Path(__file__).resolve().parent / f".find-domain-{cache_hash}.cache"
+# Single cache of all domains confirmed registered, shared across all runs.
+# Registration status doesn't depend on the suffix/length that surfaced a
+# domain, so one list works regardless of arguments.
+CACHE_FILE = Path(__file__).resolve().parent / ".find-domain.cache"
+CACHE_MAX_AGE = 14 * 24 * 60 * 60  # 14 days, in seconds
 
-def load_cache(cache_file):
-    """Load cached registered domains from file"""
-    if cache_file.exists():
-        try:
-            with open(cache_file) as f:
-                domains = set(line.strip() for line in f if line.strip())
-                return domains
-        except Exception:
-            return set()
-    return set()
+def load_cache():
+    """Load the set of known-registered domains from the cache file.
 
-def save_cache(cache_file, registered_domains):
-    """Save registered domains to cache file"""
+    The cache expires after CACHE_MAX_AGE; if the file is older it's wiped
+    and treated as empty so stale registration data isn't trusted.
+    """
+    if not CACHE_FILE.exists():
+        return set()
     try:
-        with open(cache_file, 'w') as f:
+        if time.time() - CACHE_FILE.stat().st_mtime > CACHE_MAX_AGE:
+            CACHE_FILE.unlink()
+            print("Cache older than 14 days — wiped, rechecking all domains.", file=sys.stderr)
+            return set()
+        with open(CACHE_FILE) as f:
+            return set(line.strip() for line in f if line.strip())
+    except Exception:
+        return set()
+
+def save_cache(registered_domains):
+    """Save the set of known-registered domains to the cache file"""
+    try:
+        with open(CACHE_FILE, 'w') as f:
             f.write('\n'.join(sorted(registered_domains)))
     except Exception:
         pass
@@ -142,13 +149,12 @@ def main():
         run_tests()
 
     if len(sys.argv) < 3:
-        print("Usage: python find-domain.py <suffixes> <max_length> [-v] [--fresh]", file=sys.stderr)
+        print("Usage: python find-domain.py <suffixes> <max_length> [-v]", file=sys.stderr)
         print("Examples:", file=sys.stderr)
         print("  python find-domain.py net 10", file=sys.stderr)
         print("  python find-domain.py 'com,net,io' 10", file=sys.stderr)
         print("Options:", file=sys.stderr)
         print("  -v, --verbose  Print all domain checks (including registered)", file=sys.stderr)
-        print("  --fresh        Bypass cache and check all domains again", file=sys.stderr)
         print("  -t, --test     Run integration tests against known domains", file=sys.stderr)
         sys.exit(1)
 
@@ -162,12 +168,9 @@ def main():
         sys.exit(1)
 
     verbose = '-v' in sys.argv or '--verbose' in sys.argv
-    fresh = '--fresh' in sys.argv
 
-    cache_file = get_cache_file(suffixes_arg, max_length)
-
-    # Load registered domains from cache
-    cached_registered = load_cache(cache_file) if not fresh else set()
+    # Load all known-registered domains so we can skip them this run.
+    known_registered = load_cache()
 
     # Generate all domains for this run
     all_domains_for_suffixes = set()
@@ -179,20 +182,21 @@ def main():
             all_domains_for_suffixes.add(domain)
 
     # Skip domains we've already confirmed as registered
-    domains_to_check = all_domains_for_suffixes - cached_registered
+    domains_to_check = all_domains_for_suffixes - known_registered
+    skipped = len(all_domains_for_suffixes) - len(domains_to_check)
 
     if not all_domains_for_suffixes:
         print(f"No English words found ending in '{suffixes_arg}' with max length {max_length}", file=sys.stderr)
         return
 
-    if not fresh and cached_registered:
-        print(f"Skipping {len(cached_registered)} cached registered domains\n", file=sys.stderr)
+    if skipped:
+        print(f"Skipping {skipped} cached registered domains\n", file=sys.stderr)
 
     if not domains_to_check:
-        print("All domains already checked (run with --fresh to re-check all)", file=sys.stderr)
+        print("All domains already checked (cache expires after 14 days)", file=sys.stderr)
         return
 
-    print(f"Found {len(all_domains_for_suffixes)} candidate domains, checking {len(domains_to_check)} (skipped {len(cached_registered)} cached registered)...\n", file=sys.stderr)
+    print(f"Found {len(all_domains_for_suffixes)} candidate domains, checking {len(domains_to_check)} (skipped {skipped} cached registered)...\n", file=sys.stderr)
 
     def check_domain_task(domain):
         is_available = is_domain_available(domain)
@@ -209,9 +213,11 @@ def main():
         results = executor.map(check_domain_task, domains_to_check)
         available_domains = [domain for domain in tqdm(results, total=len(domains_to_check), desc="Checking domains", unit="domain") if domain is not None]
 
-    # Track newly confirmed registered domains
-    newly_registered = domains_to_check - set(available_domains)
-    all_registered = cached_registered | newly_registered
+    # Merge newly confirmed registered domains into the full cache, dropping
+    # any that we just found to be available.
+    available_set = set(available_domains)
+    newly_registered = domains_to_check - available_set
+    all_registered = (known_registered | newly_registered) - available_set
 
     print("\n" + "=" * 60, file=sys.stderr)
     print("Available domains (NOT registered):", file=sys.stderr)
@@ -224,7 +230,7 @@ def main():
         print("(No available domains found)", file=sys.stderr)
 
     # Save registered domains to cache
-    save_cache(cache_file, all_registered)
+    save_cache(all_registered)
 
 if __name__ == '__main__':
     main()

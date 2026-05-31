@@ -66,7 +66,7 @@ Finds available domains where the prefix + TLD suffix forms an English word (e.g
 **Features:**
 - Checks availability via WHOIS with DNS SOA as fallback for unsupported TLDs
 - Supports multiple TLD suffixes in one run
-- Caches registered domains to skip on reruns (`--fresh` to bypass)
+- Caches registered domains to skip on reruns (cache expires after 14 days)
 - Verbose mode (`-v`) to show all checks, not just available domains
 - Integration tests across 20 popular TLDs (`-t`)
 - Concurrent checks with a progress bar
@@ -83,9 +83,6 @@ python3 find-domain.py 'com,net,io' 12
 
 # Verbose (show all checks, not just available)
 python3 find-domain.py ch 8 -v
-
-# Bypass cache and recheck everything
-python3 find-domain.py ch 8 --fresh
 
 # Run integration tests against known domains across 20 popular TLDs
 python3 find-domain.py -t

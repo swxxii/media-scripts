@@ -10,4 +10,5 @@ tools/response_log.txt
 plex/plex-buffer.log*
 pyenv/
 __pycache__/
-tools/.find-domain-*.cache
+tools/.find-domain.cache
+plex/plexmeta.log
