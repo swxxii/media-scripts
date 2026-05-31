@@ -87,6 +87,17 @@ Tautulli notification trigger script for logging buffering events so you can rev
 5. Under **Conditions**, set **Stream Location** is **wan** to only log remote users
 6. Save and restart Tautulli
 
+> **Running Tautulli in Docker?** The **Script Folder** must be the path *inside the
+> container*, not the host path. With a `- /host/scripts:/scripts` bind-mount, set it
+> to `/scripts/plex`.
+>
+> If the **Script File** dropdown stays empty, it's Tautulli's mount safety gate: it
+> rejects any folder whose path *or any parent* is a mount point (a bind-mount counts).
+> Fix by setting `allow_mounted_folders = 1` in `config.ini` — stop the container first
+> (Tautulli rewrites `config.ini` on exit, reverting live edits), then start it again.
+> Alternatively, mount the scripts under the data dir (e.g. `:/config/scripts`), which
+> is exempt from the check.
+
 **Example log line:**
 ```
 2026-04-12 23:05:14 AEST | alice | Inception | Count: 3
