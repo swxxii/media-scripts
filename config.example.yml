@@ -18,3 +18,5 @@ qbittorrent_polling_interval: 30
 plexmeta_output_dir: /path/to/output
 docker_base_dir: /path/to/docker
 scripts_dir: /path/to/scripts
+backup_dest_dir: /path/to/backups
+qbittorrent_conf: /path/to/qBittorrent.conf

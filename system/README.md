@@ -23,10 +23,10 @@ Automated backup for Docker containers including Arr services (Sonarr, Radarr, P
 Edit `../config.yml` and configure:
 - `docker_base_dir` - Where your Docker container data/compose files live
 - `scripts_dir` - Location of the scripts folder to back up
+- `backup_dest_dir` - Where the `.tgz` archives are saved (should be a cloud-synced folder)
+- `qbittorrent_conf` - Location of `qBittorrent.conf`
 
-Edit `backuparr.sh` and configure the variables at the top if needed:
-- `DESTDIR` - Where the `.tgz` archives are saved (should be a cloud-synced folder)
-- `QBITTORRENT_CONF` - Location of `qBittorrent.conf`
+Edit `backuparr.sh` and configure the lists at the top if needed:
 - `CONTAINERS` - The list of Docker containers to stop and back up
 - `EXCLUDES` - Optional per-container paths to leave out of the archive
 
