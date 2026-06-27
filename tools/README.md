@@ -2,15 +2,13 @@
 
 Utility scripts for file management and testing.
 
-See [main README](../README.md) for general setup and configuration.
+See [main README](../README.md) for general setup and configuration, and dependency installation.
 
 ## Scripts
 
 ### `media-extensions.py`
 
 Restores file extensions for photos and videos by analyzing magic bytes.
-
-**Dependencies:** None (uses standard library)
 
 **Features:**
 - Detects file types from binary headers/magic bytes
@@ -41,8 +39,6 @@ python3 media-extensions.py /path/to/files --sanitize-names
 
 Strips embedded subtitle tracks from video files with `[4K]` in their filename using ffmpeg.
 
-**Dependencies:** `pip install tqdm` and `sudo apt install ffmpeg mediainfo`
-
 Useful for removing unwanted forced subtitle tracks from 4K remuxes.
 
 **Features:**
@@ -66,8 +62,6 @@ python3 strip-subtitles.py /path/to/file.mkv
 ### `find-domain.py`
 
 Finds available domains where the prefix + TLD suffix forms an English word (e.g. `mu.ch`, `bea.ch`, `rea.ch`).
-
-**Dependencies:** `pip install python-whois dnspython english-words tqdm`
 
 **Features:**
 - Checks availability via WHOIS with DNS SOA as fallback for unsupported TLDs
@@ -104,8 +98,6 @@ Arguments:
 
 Tests BitTorrent tracker URLs for validity and performance.
 
-**Dependencies:** `pip install requests rich`
-
 **Features:**
 - Fetches tracker lists from multiple public sources
 - Tests UDP and HTTP trackers concurrently
@@ -114,12 +106,7 @@ Tests BitTorrent tracker URLs for validity and performance.
 - Saves valid trackers to `valid_trackers.txt`
 - Progress bar and logging to `response_log.txt`
 
-**Setup:**
-
-Install dependencies:
-```bash
-pip install requests rich
-```
+**Configuration:**
 
 Optionally configure in `test-trackers.py`:
 - `TRACKER_LISTS` - Source URLs to pull potential trackers from

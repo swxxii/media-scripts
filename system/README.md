@@ -2,7 +2,7 @@
 
 Scripts for system maintenance, backup automation, and file management.
 
-See [main README](../README.md) for general setup and configuration.
+See [main README](../README.md) for general setup and configuration, and dependency installation.
 
 ## Scripts
 
@@ -64,6 +64,16 @@ MOUNTS=("/mnt/media" "/mnt/sync")
 
 ---
 
+### `permissions.sh`
+
+Configures standard user and group ownership (`media` GID `1001`, `docker` GID `1003`) and read/write/execute permissions (e.g. `775` or `777`) across downloads, Plex media, Plex logs, and Docker container subdirectories under `/home/simon/docker/`. It also cleans up macOS-generated metadata files (`.DS_Store`, `._*`) from media mounts.
+
+**Usage:**
+```bash
+sudo ./permissions.sh
+```
+
+---
 
 ### `safe-reboot.sh`
 
@@ -78,7 +88,7 @@ sudo ./safe-reboot.sh
 
 ## Scheduling
 
-All scripts are configured to run automatically via cron:
+All scripts are configured to run automatically via cron. Edit your crontab using `crontab -e` and add:
 
 ```bash
 # Weekly backup (Sunday 3 AM)
@@ -87,4 +97,3 @@ All scripts are configured to run automatically via cron:
 # Mount checks (every 5 minutes)
 */5 * * * * /path/to/scripts/system/check-mounts.sh
 ```
-

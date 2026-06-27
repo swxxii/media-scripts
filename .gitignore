@@ -3,8 +3,8 @@
 permissions.sh
 config.yml
 system/backuparr.log
-plex/plex-qbt-pauser.log
-plex/plex-qbt-pauser.pid
+plex/plex-playback-monitor.log
+plex/plex-playback-monitor.pid
 pyenv/*
 tools/response_log.txt
 plex/plex-buffer.log*

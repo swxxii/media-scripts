@@ -57,6 +57,9 @@ Unable to find client profile Generic, falling back to traditional profile detec
 
 ## Resolution
 
+> [!CAUTION]
+> This is a dirty hack. Removing `Generic.xml` forces Plex to fall back to built-in profile detection, which fixes Chromecast but **may break playback for other clients** (e.g. LG TVs). Test other devices after applying.
+
 ### Step 1 — Run the helper script
 
 ```bash

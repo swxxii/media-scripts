@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# plex-qbt-pauser.py — see README.md for more information.
+# plex-playback-monitor.py — see README.md for more information.
 # Imports for system operations, logging, file handling, and API clients
 import atexit
 import fcntl
@@ -30,15 +30,15 @@ MAX_LIMITED: int = 1                       # Max concurrent torrents during play
 # INITIAL SETUP
 # -------------------------------------------------------------------------
 
-ROOT = Path(__file__).resolve().parent.parent  # Project root (where secrets.yml is)
+ROOT = Path(__file__).resolve().parent.parent  # Project root
 SCRIPT = Path(__file__).resolve()          # Script file path
 LOG_FILE = SCRIPT.with_suffix(".log")      # Log file path
 PID_FILE = SCRIPT.with_suffix(".pid")      # Lock file path
-DETACHED_ENV = "PLEX_QBT_PAUSER_DETACHED"  # Detached process indicator
+DETACHED_ENV = "PLEX_PLAYBACK_MONITOR_DETACHED"  # Detached process indicator
 
 # Create rotating file logger with timestamp and level formatting
 def setup_logger(log_file: Path, level: int, max_bytes: int) -> logging.Logger:
-    logger = logging.getLogger("plex-qbt-pauser")
+    logger = logging.getLogger("plex-playback-monitor")
     logger.setLevel(level)
     # Create rotating handler that overwrites when max size is reached
     handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=0)
@@ -126,6 +126,7 @@ def load_config() -> dict:
     log.info("Loaded config from %s", config_path)
     # Combine config values with defaults
     return {
+        "plex_url": config["plex_url"],
         "plex_sessions_url": config["plex_url"] + "/status/sessions",
         "plex_token": config["plex_token"],
         "qb_host": config["qbittorrent_host"],
@@ -200,7 +201,7 @@ class QbitManager:
             self.log.warning("qBittorrent resume all: %s", e)
 
 
-# Monitors active Plex streaming sessions
+# Monitors active Plex streaming sessions and settings
 class PlexMonitor:
     def __init__(self, config: dict, log: logging.Logger):
         self.c = config
@@ -209,25 +210,44 @@ class PlexMonitor:
         self.http = requests.Session()
         self.http.headers["Accept"] = "application/xml"
 
-    # Count active remote Plex playback sessions (non-local, playing state)
-    def get_remote_play_count(self) -> int:
+    # Return (total_playing, remote_playing) counts in a single API call.
+    # total includes local sessions; remote excludes them (local=0).
+    def get_play_counts(self) -> tuple[int, int]:
         r = self.http.get(
             self.c["plex_sessions_url"],
             params={"X-Plex-Token": self.c["plex_token"]},
             timeout=15,
         )
         r.raise_for_status()
-        # Parse XML response and count remote players in playing state
         root = ET.fromstring(r.text)
-        # Sum up sessions where player is remote (local=0) and actively playing
-        n = sum(
-            1
-            for v in root
-            if (pl := v.find("Player")) is not None
-            and pl.get("local") == "0"
-            and pl.get("state") == "playing"
-        )
-        return n
+        total = remote = 0
+        for v in root:
+            pl = v.find("Player")
+            if pl is not None and pl.get("state") == "playing":
+                total += 1
+                if pl.get("local") == "0":
+                    remote += 1
+        return total, remote
+
+    # Toggle Plex background library scans via API
+    def set_library_updates(self, enabled: bool) -> bool:
+        val = "1" if enabled else "0"
+        params = {
+            'ScheduledLibraryUpdatesEnabled': val,
+            'FSEventLibraryUpdatesEnabled': val,
+            'FSEventLibraryPartialScanEnabled': val,
+            'X-Plex-Token': self.c["plex_token"],
+        }
+        try:
+            r = self.http.put(f"{self.c['plex_url']}/:/prefs", params=params, timeout=15)
+            if r.status_code == 200:
+                self.log.info("Library scans %s.", "enabled" if enabled else "disabled")
+                return True
+            else:
+                self.log.error(f"Failed to update Plex settings. Status: {r.status_code} — {r.text[:300]}")
+        except Exception as e:
+            self.log.error(f"Error communicating with Plex API: {e}")
+        return False
 
     # Reset HTTP session to recover from connection errors
     def reset_http(self):
@@ -236,12 +256,15 @@ class PlexMonitor:
         self.http.headers["Accept"] = "application/xml"
 
 
-# Main monitoring loop: check Plex, pause/resume torrents based on activity
+# Main monitoring loop: check Plex, pause/resume torrents, and toggle scan controls
 def main():
     # Load API credentials from secrets.yml
     c = load_config()
-    # Track state to avoid logging redundant state transitions
-    paused = None
+    # Separate state flags to avoid redundant transitions:
+    # scans_paused  — tracks library scan state (any playback, local or remote)
+    # torrents_paused — tracks download state (remote playback only)
+    scans_paused = None
+    torrents_paused = None
     # Connect to qBittorrent
     qb = qbittorrentapi.Client(
         host=c["qb_host"],
@@ -258,14 +281,24 @@ def main():
     # Infinite monitoring loop
     while True:
         try:
-            # Check for active remote Plex streams
-            n = plex.get_remote_play_count()
-            # If any remote playback is active, pause torrents
-            if n > 0:
-                # Remote playback detected - pause torrents
-                # Log state change only on transition from unpaused to paused
-                if paused is not True:
-                    log.info("%d remote user(s) playing – pausing torrents", n)
+            # Fetch both counts in a single API call
+            total, remote = plex.get_play_counts()
+
+            # --- Scan management: any playback (local or remote) ---
+            if total > 0:
+                if scans_paused is not True:
+                    log.info("%d session(s) active – disabling library scans", total)
+                    plex.set_library_updates(False)
+                    scans_paused = True
+            elif scans_paused is not False:
+                log.info("No active sessions – enabling library scans")
+                plex.set_library_updates(True)
+                scans_paused = False
+
+            # --- Download management: remote playback only ---
+            if remote > 0:
+                if torrents_paused is not True:
+                    log.info("%d remote user(s) playing – pausing torrents", remote)
                 ex = (c["skip_category"] or "").strip()
                 # If no skip category configured, pause all torrents
                 if not ex:
@@ -287,15 +320,14 @@ def main():
                 qbm.set_max_torrents(
                     MAX_LIMITED if skipped > 0 else MAX_NORMAL,
                 )
-                paused = True
-            elif paused is not False:
+                torrents_paused = True
+            elif torrents_paused is not False:
                 # No remote playback - resume torrents
-                # Log state change only on transition from paused to unpaused
                 log.info("No remote playback – resuming torrents")
                 qbm.set_speed_limits(False, "Speed limits: normal")
                 qbm.set_max_torrents(MAX_NORMAL)
                 qbm.resume_all()
-                paused = False
+                torrents_paused = False
         except requests.RequestException as e:
             # Network error connecting to Plex - reset connection
             log.warning("Plex request failed: %s – retrying next cycle", e)

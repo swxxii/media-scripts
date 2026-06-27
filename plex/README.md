@@ -2,15 +2,13 @@
 
 Scripts for managing Plex media server, monitoring playback, and automating tasks.
 
-See [main README](../README.md) for general setup and configuration.
+See [main README](../README.md) for general setup and configuration, and dependency installation.
 
 ## Scripts
 
 ### `plexmeta.py`
 
 Exports Plex library to CSV and JSON metadata via Tautulli API so you have a backup of what was in Plex if you lose everything (e.g. NAS failure).
-
-**Dependencies:** `pip install requests pyyaml`
 
 **Features:**
 - Queries Tautulli for all library sections
@@ -34,40 +32,43 @@ python3 plexmeta.py
 
 ---
 
-### `plex-qbt-pauser.py`
+### `plex-playback-monitor.py`
 
-Pause torrents when remote users are playing in Plex, then resume when they finish. Skip pausing torrents in certain categories. If any torrents remain active, switches on alternative speed limit.
+**Features:**
 
-**Dependencies:** `pip install requests qbittorrent-api pyyaml`
-
-The first run spawns a background worker and then exits (like `nohup`).
+Monitors Plex for playback sessions and pauses/resumes things that can cause buffering. Auto-detaches to run in the background (like `nohup`). A cron entry re-launches it if the process ever dies.
+- **qBittorrent**: when remote sessions are active pauses torrents, adjusts speed limits, and reduces the active torrent limit. Resumes everything when remote playback stops.
+- **Plex library scans**: when any sessions are active disables Plex background library scanning ("Scan my library periodically", "Scan my library automatically", "Run a partial scan when changes are detected"), then re-enables them when playback sessions end.
 
 **Setup:**
-1. Edit `../config.yml` and configure:
-   - `plex_url` - Your Plex server address
-   - `plex_token` *(Plex Web → library item → Get Info → View XML → copy `X-Plex-Token` from URL)*
-   - `qbittorrent_host` - qBittorrent server IP
-   - `qbittorrent_username` / `password` - Your qBittorrent credentials
-   - `qbittorrent_port` - qBittorrent WebUI port (optional, default: 8081)
-   - `qbittorrent_skip_category` - Category to skip pausing (optional, default: "force")
-   - `qbittorrent_polling_interval` - Check interval in seconds (optional, default: 30)
+Edit `../config.yml` and configure:
+   - `plex_url` — Your Plex server address
+   - `plex_token` — Your Plex API token *(Plex Web → library item → Get Info → View XML → copy `X-Plex-Token` from URL)*
+   - `qbittorrent_host` — qBittorrent server IP
+   - `qbittorrent_username` / `password` — Your qBittorrent credentials
+   - `qbittorrent_port` — qBittorrent WebUI port (optional, default: `8081`)
+   - `qbittorrent_skip_category` — Category to skip pausing (optional, default: `"force"`)
+   - `qbittorrent_polling_interval` — Check interval in seconds (optional, default: `30`)
 
-**Usage:**
+**Usage (Daemon Mode):**
 ```bash
 # Run directly (spawns background worker)
-python3 plex-qbt-pauser.py
+python3 plex-playback-monitor.py
 
 # Restart the script (kills any running worker, then starts a new one)
-python3 plex-qbt-pauser.py --restart
+python3 plex-playback-monitor.py --restart
 
 # Stop the running worker without starting a new one
-python3 plex-qbt-pauser.py --quit
+python3 plex-playback-monitor.py --quit
 
 # Monitor live logs
-tail -f plex-qbt-pauser.log
+tail -f plex-playback-monitor.log
 ```
 
-**Cron:** Every hour (ensures daemon stays running)
+**Cron:** Every hour (ensures daemon stays running). Edit your crontab using `crontab -e` and add:
+```bash
+0 * * * * /usr/bin/python3 /path/to/scripts/plex/plex-playback-monitor.py >> /path/to/scripts/plex/plex-playback-monitor.log 2>&1
+```
 
 ---
 
@@ -108,6 +109,9 @@ Tautulli notification trigger script for logging buffering events so you can rev
 ### `plex-chromecast-fix.sh`
 
 Fix Chromecast casting issues on Plex. Run after each Plex update.
+
+> [!CAUTION]
+> This is a dirty hack. Removing `Generic.xml` forces Plex to use a fallback profile that fixes Chromecast but **may break playback for other clients** (e.g. LG TVs). Test other devices after applying.
 
 **What it does:**
 - Renames `/usr/lib/plexmediaserver/Resources/Profiles/Generic.xml` to `Generic.xml.old`
