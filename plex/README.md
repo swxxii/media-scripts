@@ -59,7 +59,7 @@ python3 plex-playback-monitor.py
 python3 plex-playback-monitor.py --restart
 
 # Stop the running worker without starting a new one
-python3 plex-playback-monitor.py --quit
+python3 plex-playback-monitor.py --quit   # or --stop
 
 # Monitor live logs
 tail -f plex-playback-monitor.log

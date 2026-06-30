@@ -347,8 +347,10 @@ def main():
 
 
 if __name__ == "__main__":
-    if "--quit" in sys.argv:
-        sys.argv.remove("--quit")
+    if "--quit" in sys.argv or "--stop" in sys.argv:
+        for flag in ("--quit", "--stop"):
+            if flag in sys.argv:
+                sys.argv.remove(flag)
         if PID_FILE.exists():
             try:
                 old_pid = int(PID_FILE.read_text().strip())
