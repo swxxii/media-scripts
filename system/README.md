@@ -92,7 +92,7 @@ Recreates Docker Compose services in bulk — discovers every service under a di
 
 **Why this is needed:**
 
-Some settings only take effect when a container is **created**, not when it is restarted. The trigger here was Docker log rotation: setting `log-opts` (`max-size`/`max-file`) in `/etc/docker/daemon.json` caps logs only for containers created *after* the change — `docker compose restart` (and even a Docker daemon restart) leaves existing containers on their original, unbounded log config. The only way to apply it to already-running containers is to recreate them, and doing that one directory at a time across a large stack is tedious and error-prone. This script does the whole sweep, with a skip list for services that should be left alone (e.g. a backup site normally kept offline).
+Some settings (e.g. log rotation via `log-opts` in `/etc/docker/daemon.json`) only apply to containers created *after* the change — `docker compose restart` and even a daemon restart leave existing ones untouched. Only a recreate picks them up. This sweeps the whole stack instead of doing it dir-by-dir, with a skip list for services to leave alone.
 
 **Setup:**
 
