@@ -86,6 +86,30 @@ sudo ./safe-reboot.sh
 
 ---
 
+### `recreate-docker.sh`
+
+Recreates Docker Compose services in bulk — discovers every service under a directory of per-service Compose projects and takes each one `down` then `up -d`.
+
+**Why this is needed:**
+
+Some settings only take effect when a container is **created**, not when it is restarted. The trigger here was Docker log rotation: setting `log-opts` (`max-size`/`max-file`) in `/etc/docker/daemon.json` caps logs only for containers created *after* the change — `docker compose restart` (and even a Docker daemon restart) leaves existing containers on their original, unbounded log config. The only way to apply it to already-running containers is to recreate them, and doing that one directory at a time across a large stack is tedious and error-prone. This script does the whole sweep, with a skip list for services that should be left alone (e.g. a backup site normally kept offline).
+
+**Setup:**
+
+Edit the config block at the top of the script:
+- `DOCKER_DIR` - directory holding one subdirectory per service (each with a compose file)
+- `SKIP` - service names to exclude from the recreate-all run (services named explicitly on the command line are always recreated)
+
+**Usage:**
+```bash
+./recreate-docker.sh                 # recreate all discovered services (minus skip list)
+./recreate-docker.sh radarr sonarr   # recreate only the named services
+```
+
+> Note: this recreates containers (`down` + `up -d`), so each service has a few seconds of downtime — it is not an in-place restart.
+
+---
+
 ## Scheduling
 
 All scripts are configured to run automatically via cron. Edit your crontab using `crontab -e` and add:
