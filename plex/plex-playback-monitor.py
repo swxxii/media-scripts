@@ -351,13 +351,26 @@ if __name__ == "__main__":
         for flag in ("--quit", "--stop"):
             if flag in sys.argv:
                 sys.argv.remove(flag)
-        if PID_FILE.exists():
-            try:
-                old_pid = int(PID_FILE.read_text().strip())
-                os.kill(old_pid, signal.SIGKILL)
-                print(f"Killed existing worker (pid {old_pid})...", file=sys.stderr)
-            except (OSError, ValueError):
-                pass
+        if not PID_FILE.exists():
+            print("No worker running (no PID file).", file=sys.stderr)
+            sys.exit(0)
+        try:
+            old_pid = int(PID_FILE.read_text().strip())
+        except ValueError:
+            PID_FILE.unlink(missing_ok=True)
+            print("Removed invalid PID file – no worker running.", file=sys.stderr)
+            sys.exit(0)
+        try:
+            os.kill(old_pid, signal.SIGKILL)
+        except ProcessLookupError:
+            PID_FILE.unlink(missing_ok=True)
+            print(f"No worker running (stale PID {old_pid}) – cleaned up.", file=sys.stderr)
+            sys.exit(0)
+        except PermissionError:
+            print(f"Cannot stop worker (pid {old_pid}): permission denied.", file=sys.stderr)
+            sys.exit(1)
+        PID_FILE.unlink(missing_ok=True)
+        print(f"Stopped worker (pid {old_pid}).", file=sys.stderr)
         sys.exit(0)
 
     if "--restart" in sys.argv:
