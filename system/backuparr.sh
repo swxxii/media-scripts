@@ -8,15 +8,12 @@
 #                and restarted after. Logs are written to backuparr.log next to
 #                the script (truncated each run).
 #
-# Usage        : Edit paths in config.yml and the lists below as needed.
+# Usage        : Edit paths and the backup_containers list in config.yml.
 #                Run this script daily or weekly via scheduled cron job.
 #
 # =============================================================================
 # CONFIG - customize as needed
 # =============================================================================
-
-# List of containers to stop/start and back up
-CONTAINERS=(sonarr radarr prowlarr cleanuparr filebrowser gitea tautulli uptime-kuma signal-api monitor bazarr)
 
 # Per-container archive excludes (relative to the container's data folder)
 declare -A EXCLUDES=(
@@ -28,6 +25,9 @@ declare -A EXCLUDES=(
 # Read paths from config.yml
 _CONFIG="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../config.yml"
 read -r DOCKER_BASE_DIR SCRIPTS_DIR DESTDIR QBITTORRENT_CONF < <(python3 -c "import yaml; c=yaml.safe_load(open('$_CONFIG')); print(c['docker_base_dir'], c['scripts_dir'], c['backup_dest_dir'], c['qbittorrent_conf'])")
+
+# List of containers to stop/start and back up (from config.yml)
+mapfile -t CONTAINERS < <(python3 -c "import yaml; print('\n'.join(yaml.safe_load(open('$_CONFIG'))['backup_containers']))")
 
 # Log everything to backuparr.log next to this script (overwrite)
 set -euo pipefail

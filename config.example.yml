@@ -20,3 +20,9 @@ docker_base_dir: /path/to/docker
 scripts_dir: /path/to/scripts
 backup_dest_dir: /path/to/backups
 qbittorrent_conf: /path/to/qBittorrent.conf
+
+# Backups — containers stopped, archived, and restarted by backuparr.sh
+backup_containers:
+  - sonarr
+  - radarr
+  - prowlarr
