@@ -1,0 +1,216 @@
+#!/usr/bin/env python3
+# -------------------------------------------------------------------------
+# plexmeta.py
+#
+# Description:  Exports Plex library metadata via the Tautulli API.
+#               - Ensure OUTPUT_DIR exists and Tautulli is reachable.
+#               - Remove any stale exports from the server.
+#               - Query Tautulli to get library sections.
+#               - Trigger CSV/JSON exports for each section.
+#               - Poll until each export completes or fails.
+#               - Download completed files to disk.
+#               - Clean up exports from the server.
+#
+# Dependencies: `pip install requests pyyaml`
+#
+# -------------------------------------------------------------------------
+import sys
+import time
+import yaml
+import requests
+from pathlib import Path
+
+# -------------------------------------------------------------------------
+# CONFIGURATION
+# -------------------------------------------------------------------------
+_config    = yaml.safe_load((Path(__file__).resolve().parent.parent / "config.yml").read_text())
+TAUTULLI    = _config["tautulli_url"]
+API_KEY     = _config["tautulli_api_key"]
+OUTPUT_DIR  = Path(_config["plexmeta_output_dir"])
+
+POLL_SECS   = 5
+TIMEOUT     = 300
+
+# -------------------------------------------------------------------------
+# Call Tautulli API and return parsed data
+# -------------------------------------------------------------------------
+def api(cmd, **params):
+    r = requests.get(
+        f"{TAUTULLI}/api/v2",
+        params={"apikey": API_KEY, "cmd": cmd, **params},
+        timeout=30,
+    )
+    r.raise_for_status()
+    body = r.json()["response"]
+    if body["result"] != "success":
+        raise RuntimeError(f"{cmd} failed: {body.get('message')}")
+    return body["data"]
+
+
+# -------------------------------------------------------------------------
+# Check that Tautulli can talk to Plex (token is valid)
+# -------------------------------------------------------------------------
+def check_plex_connection():
+    try:
+        logs = api("get_logs", search="Unauthorized", end=20)
+        recent_auth_errors = [
+            log for log in logs
+            if log.get("loglevel") == "ERROR" and "401" in log.get("msg", "")
+        ]
+        if recent_auth_errors:
+            print("ERROR: Tautulli cannot connect to Plex — authentication failed (401).")
+            print("       The Plex token in Tautulli has likely expired.")
+            print("       Fix: Open Tautulli Settings > Plex Media Server and re-authenticate.")
+            print(f"       Tautulli URL: {TAUTULLI}")
+            sys.exit(1)
+    except Exception:
+        pass  # non-critical check, let it proceed
+
+
+# -----------------------------------------------------------------------------
+# Get list of Plex libraries (section_id, section_name)
+# -----------------------------------------------------------------------------
+def get_libraries():
+    table = api("get_libraries_table")
+    return [(lib["section_id"], lib["section_name"]) for lib in table.get("data", [])]
+
+
+# -----------------------------------------------------------------------------
+# Delete all export jobs from Tautulli
+# -----------------------------------------------------------------------------
+def delete_all_exports():
+    try:
+        exports_before = api("get_exports_table", length=1000).get("data", [])
+        count_before = len(exports_before)
+    except Exception:
+        count_before = 0
+    api("delete_export", delete_all=1)
+    try:
+        exports_after = api("get_exports_table", length=1000).get("data", [])
+        count_after = len(exports_after)
+    except Exception:
+        count_after = 0
+    deleted = max(count_before - count_after, 0)
+    return deleted
+
+
+# -----------------------------------------------------------------------------
+# Trigger export for a library section in CSV or JSON
+# -----------------------------------------------------------------------------
+def trigger_export(section_id, file_format="csv"):
+    data = api("export_metadata", section_id=section_id, file_format=file_format)
+    return data["export_id"]
+
+
+# -----------------------------------------------------------------------------
+# Wait until export job completes or times out
+# -----------------------------------------------------------------------------
+def wait_until_ready(export_id, section_id):
+    deadline = time.time() + TIMEOUT
+    while time.time() < deadline:
+        time.sleep(POLL_SECS)
+        rows = api("get_exports_table", section_id=section_id, length=50)
+        for row in rows.get("data", []):
+            if row.get("export_id") == export_id:
+                if row.get("complete") == 1:
+                    return
+                if row.get("complete") == -1:
+                    raise RuntimeError(f"Export {export_id} failed on Tautulli server")
+                break
+    raise TimeoutError(f"Export {export_id} did not complete within {TIMEOUT}s")
+
+
+# -----------------------------------------------------------------------------
+# Download completed export file to disk
+# -----------------------------------------------------------------------------
+def download(export_id, path):
+    r = requests.get(
+        f"{TAUTULLI}/api/v2",
+        params={"apikey": API_KEY, "cmd": "download_export", "export_id": export_id},
+        stream=True,
+        timeout=120,
+    )
+    r.raise_for_status()
+    content = b"".join(r.iter_content(8192))
+    if not content:
+        raise RuntimeError("Downloaded file was empty")
+    path.write_bytes(content)
+    return len(content)
+
+
+# -----------------------------------------------------------------------------
+# Make a library name safe for filesystem
+# -----------------------------------------------------------------------------
+def safe_filename(name):
+    return name.replace(" ", "_").replace("/", "-").replace(":", "")
+
+
+# -----------------------------------------------------------------------------
+# Wait for Tautulli server to become reachable
+# -----------------------------------------------------------------------------
+def wait_for_tautulli(timeout=120):
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            api("get_libraries_table")
+            return
+        except Exception:
+            time.sleep(5)
+    raise TimeoutError(f"Tautulli did not become reachable within {timeout}s")
+
+
+# -----------------------------------------------------------------------------
+# Run the full export workflow
+# -----------------------------------------------------------------------------
+def main():
+    print("Starting Plex metadata export...")
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    wait_for_tautulli()
+    check_plex_connection()
+    deleted_initial = delete_all_exports()
+    print(f"Cleaned up {deleted_initial} exports before starting.")
+    libraries = get_libraries()
+    print(f"Found {len(libraries)} libraries")
+
+    ok, failed = [], []
+    total_start = time.time()
+    results = []
+    print("-" * 62)
+    print("{:<14} {:<6} {:>12} {:>12} {:>10}".format("Library", "Status", "CSV Size", "JSON Size", "Time"))
+    print("-" * 62)
+    for section_id, name in libraries:
+        start = time.time()
+        status = "OK"
+        csv_size = json_size = "-"
+        error = ""
+        try:
+            sizes = []
+            for fmt in ("csv", "json"):
+                export_id = trigger_export(section_id, fmt)
+                wait_until_ready(export_id, section_id)
+                out_path = OUTPUT_DIR / f"{safe_filename(name)}.{fmt}"
+                sizes.append(download(export_id, out_path))
+            csv_size = f"{int(sizes[0] / 1024)} KB"
+            json_size = f"{int(sizes[1] / 1024)} KB"
+            ok.append(name)
+        except Exception as e:
+            status = "FAIL"
+            error = str(e)
+            failed.append((name, error))
+        end = time.time()
+        elapsed = round(end - start, 1)
+        results.append((name, status, csv_size, json_size, f"{elapsed:.1f}", error))
+        print("{:<14} {:<6} {:>12} {:>12} {:>10}".format(name, status, csv_size, json_size, f"{elapsed:.1f}s"))
+    deleted_final = delete_all_exports()
+    print(f"\nCleaned up {deleted_final} exports after export.")
+    total_end = time.time()
+    print(f"\n{len(ok)} succeeded, {len(failed)} failed")
+    if failed:
+        print("\nFailed libraries:")
+        for name, err in failed:
+            print(f"  ✗ {name}: {err}")
+    print(f"\nTotal export time: {round(total_end - total_start, 1):.1f}s")
+
+
+if __name__ == "__main__":
+    main()

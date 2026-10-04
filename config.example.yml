@@ -1,0 +1,34 @@
+# Plex
+plex_token: YOUR_PLEX_TOKEN
+plex_url: http://YOUR_SERVER_IP:32400
+
+# Tautulli
+tautulli_api_key: YOUR_TAUTULLI_API_KEY
+tautulli_url: http://YOUR_SERVER_IP:8181
+
+# qBittorrent
+qbittorrent_username: YOUR_QBITTORRENT_USERNAME
+qbittorrent_password: YOUR_QBITTORRENT_PASSWORD
+qbittorrent_host: YOUR_SERVER_IP
+qbittorrent_port: 8081
+qbittorrent_skip_category: force
+qbittorrent_polling_interval: 30
+
+# Paths
+plexmeta_output_dir: /path/to/output
+docker_base_dir: /path/to/docker
+scripts_dir: /path/to/scripts
+backup_dest_dir: /path/to/backups
+qbittorrent_conf: /path/to/qBittorrent.conf
+# Plex DB dir — backuparr copies the newest nightly com.plexapp.plugins.library.db-YYYY-MM-DD snapshot from here
+plex_db_dir: /var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Databases
+
+# Backups — containers stopped, archived, and restarted by backuparr.sh.
+# Optional `excludes:` lists paths left out of the archive, relative to the
+# container's data folder. Omit it to archive the whole folder.
+backup_containers:
+  sonarr:
+    excludes: [config/MediaCover]
+  radarr:
+    excludes: [config/MediaCover]
+  prowlarr:
